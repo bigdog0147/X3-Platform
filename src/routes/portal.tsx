@@ -48,25 +48,34 @@ import {
   Play,
   Pause,
   RotateCw,
+  Video,
+  Camera,
+  Music,
+  Minus,
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  ShieldAlert,
+  SlidersVertical,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { X3Logo3D } from "@/components/x3-logo-3d";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/portal")({
   component: CustomerPortalPage,
   head: () => ({
     meta: [
-      { title: "Tesla & X3 Customer Account — Dynamic 3D Vehicle Dashboard & Upgrades" },
+      { title: "Tesla & Cybertruck In-Car Touchscreen — Model-Specific Digital Cockpit" },
       {
         name: "description",
-        content: "Official Tesla owner portal: 360-degree interactive 3D vehicle turntable, live motion feed, over-the-air upgrades, and complete order history.",
+        content: "Futuristic in-car touchscreen dashboard tailored specifically for Cybertruck and Roadster Founders Series without static photos.",
       },
     ],
   }),
 });
 
-function playHapticBeep(type: "click" | "success" | "thruster" | "lock") {
+function playTeslaHaptic(type: "click" | "gear" | "fsd" | "thruster" | "locker") {
   if (typeof window === "undefined") return;
   try {
     const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -79,315 +88,92 @@ function playHapticBeep(type: "click" | "success" | "thruster" | "lock") {
 
     const now = ctx.currentTime;
     if (type === "click") {
-      osc.frequency.setValueAtTime(600, now);
-      gain.gain.setValueAtTime(0.06, now);
+      osc.frequency.setValueAtTime(650, now);
+      gain.gain.setValueAtTime(0.04, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
       osc.start(now);
       osc.stop(now + 0.04);
-    } else if (type === "lock") {
-      osc.frequency.setValueAtTime(800, now);
-      osc.frequency.setValueAtTime(1200, now + 0.06);
-      gain.gain.setValueAtTime(0.1, now);
+    } else if (type === "gear") {
+      osc.frequency.setValueAtTime(450, now);
+      osc.frequency.setValueAtTime(700, now + 0.06);
+      gain.gain.setValueAtTime(0.08, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
       osc.start(now);
       osc.stop(now + 0.15);
-    } else if (type === "success") {
-      osc.frequency.setValueAtTime(520, now);
-      osc.frequency.setValueAtTime(780, now + 0.08);
-      osc.frequency.setValueAtTime(1040, now + 0.16);
+    } else if (type === "fsd") {
+      osc.frequency.setValueAtTime(587, now);
+      osc.frequency.setValueAtTime(880, now + 0.1);
       gain.gain.setValueAtTime(0.1, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
       osc.start(now);
       osc.stop(now + 0.25);
     } else if (type === "thruster") {
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.setValueAtTime(120, now);
       osc.frequency.exponentialRampToValueAtTime(40, now + 0.35);
       gain.gain.setValueAtTime(0.14, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       osc.start(now);
       osc.stop(now + 0.35);
+    } else if (type === "locker") {
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.setValueAtTime(200, now + 0.08);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      osc.start(now);
+      osc.stop(now + 0.2);
     }
   } catch (e) {}
 }
-
-interface VehicleUpgrade {
-  id: string;
-  title: string;
-  category: "Performance" | "Autonomy" | "Hardware" | "Connectivity";
-  badge: string;
-  price: number;
-  description: string;
-  specsBoost: { label: string; value: string };
-  installed: boolean;
-}
-
-interface PurchaseItem {
-  id: string;
-  title: string;
-  date: string;
-  amount: number;
-  status: "Completed" | "Escrow Secured";
-  txId: string;
-}
-
-interface VehicleOrder {
-  id: string;
-  vin: string;
-  name: string;
-  model: string;
-  trim: string;
-  color: string;
-  interior: string;
-  wheels: string;
-  heroVideo?: string;
-  galleryImages: { label: string; url: string }[];
-  turntableFrames: string[];
-  status: "In Assembly" | "Ready for Delivery" | "Delivered";
-  deliveryEstimate: string;
-  deliveryCenter: string;
-  batteryPercent: number;
-  rangeMiles: number;
-  odometer: number;
-  isLocked: boolean;
-  climateOn: boolean;
-  climateTemp: number;
-  sentryActive: boolean;
-  chargeLimit: number;
-  upgrades: VehicleUpgrade[];
-  tasks: { title: string; completed: boolean; desc: string }[];
-  documents: { title: string; date: string; size: string }[];
-  purchases: PurchaseItem[];
-}
-
-// 40 High-Res Roadster Frames for 360-Degree Turntable
-const ROADSTER_TURNTABLE_FRAMES = Array.from({ length: 40 }, (_, i) => {
-  const num = i + 1 < 10 ? `0${i + 1}` : `${i + 1}`;
-  return `/assets/roadster/gallery/roadster-${num}.jpg`;
-});
-
-const DEFAULT_VEHICLES: VehicleOrder[] = [
-  {
-    id: "RN109482710",
-    vin: "5YJSA1E26PF904288",
-    name: "Founders Roadster",
-    model: "X3 Roadster",
-    trim: "Founders Series · SpaceX Cold-Gas Thruster Package",
-    color: "Titanium Pearl White",
-    interior: "Lightweight White Sport Bucket & Yoke",
-    wheels: "21\" Forged Aero Carbon Wheels",
-    heroVideo: "/assets/roadster/roadster-motion.mp4",
-    galleryImages: [
-      { label: "Studio White", url: "/assets/roadster/roadster-studio-white.jpg" },
-      { label: "Aero Yoke Cockpit", url: "/assets/roadster/roadster-interior-cockpit.jpg" },
-      { label: "SpaceX Thrusters", url: "/assets/roadster/roadster-rear-thrusters.jpg" },
-      { label: "Track Wheels", url: "/assets/roadster/roadster-wheel-tire.jpg" },
-      { label: "Aero Wings", url: "/assets/roadster/roadster-race-profile.jpg" },
-    ],
-    turntableFrames: ROADSTER_TURNTABLE_FRAMES,
-    status: "In Assembly",
-    deliveryEstimate: "August 18 – September 04, 2026",
-    deliveryCenter: "Tesla Gigafactory Texas Delivery Hub",
-    batteryPercent: 98,
-    rangeMiles: 620,
-    odometer: 14,
-    isLocked: true,
-    climateOn: false,
-    climateTemp: 68,
-    sentryActive: true,
-    chargeLimit: 90,
-    upgrades: [
-      {
-        id: "upg-spacex",
-        title: "SpaceX Cold-Gas Thruster Package",
-        category: "Performance",
-        badge: "0-60 IN 1.1 SEC",
-        price: 25000,
-        description: "Surround composite cold-gas helium thrusters providing 1.1s launch, high-G track cornering, and active aerodynamic braking downforce.",
-        specsBoost: { label: "0-60 MPH Acceleration", value: "1.9s → 1.1s (Rocket Mode)" },
-        installed: true,
-      },
-      {
-        id: "upg-fsd",
-        title: "Full Self-Driving (Supervised) HW5",
-        category: "Autonomy",
-        badge: "FSD V13 READY",
-        price: 8000,
-        description: "Full point-to-point neural network autonomous driving on highways and city streets with track apex race line autopilot.",
-        specsBoost: { label: "Autonomy Level", value: "Level 2 → Supervised FSD" },
-        installed: false,
-      },
-      {
-        id: "upg-track-brakes",
-        title: "Carbon-Ceramic Matrix Track Brakes",
-        category: "Performance",
-        badge: "ZERO FADE",
-        price: 8500,
-        description: "410mm continuous-fiber carbon-silicon-carbide brake discs with high-temperature 6-piston monobloc calipers.",
-        specsBoost: { label: "100-0 MPH Braking", value: "285 ft → 215 ft" },
-        installed: false,
-      },
-      {
-        id: "upg-starlink",
-        title: "Starlink Direct-to-Vehicle Gigabit",
-        category: "Connectivity",
-        badge: "LEO SATELLITE",
-        price: 1500,
-        description: "Phased array Starlink antenna built directly into vehicle carbon roof panel for zero dead zones worldwide.",
-        specsBoost: { label: "Satellite Uplink", value: "< 12 ms Low Earth Orbit" },
-        installed: false,
-      },
-      {
-        id: "upg-armor-wrap",
-        title: "Obsidian Stealth Ballistic PPF",
-        category: "Hardware",
-        badge: "10MIL SATIN",
-        price: 6000,
-        description: "Self-healing 10mil satin ballistic protection film in deep obsidian black with hydrophobic ceramic coating.",
-        specsBoost: { label: "Paint Defense", value: "Standard → 10mil Ballistic Shield" },
-        installed: false,
-      },
-    ],
-    tasks: [
-      { title: "Delivery Location & Time Window", completed: true, desc: "Gigafactory Texas Delivery Center confirmed." },
-      { title: "Registration Details & Identity", completed: true, desc: "Driver license and registration names submitted." },
-      { title: "Proof of Active Insurance", completed: true, desc: "Policy validated with Tesla Insurance Network." },
-      { title: "Final Balance Escrow Settlement", completed: false, desc: "$50,000 security deposit locked; final balance settles at handover." },
-    ],
-    documents: [
-      { title: "Motor Vehicle Purchase Agreement (MVPA)", date: "Oct 14, 2025", size: "1.4 MB" },
-      { title: "Founders Series Reservation Certificate", date: "Oct 14, 2025", size: "840 KB" },
-      { title: "Monroney Window Sticker & MSRP Breakdown", date: "Jan 28, 2026", size: "2.1 MB" },
-      { title: "Tesla Limited Vehicle Warranty Disclosures", date: "Jan 28, 2026", size: "620 KB" },
-    ],
-    purchases: [
-      {
-        id: "ORD-9042-01",
-        title: "X3 Roadster Founders Series Allocation",
-        date: "Oct 14, 2025",
-        amount: 50000,
-        status: "Escrow Secured",
-        txId: "TX-7821-FND",
-      },
-      {
-        id: "ORD-9042-02",
-        title: "SpaceX Cold-Gas Thruster Package",
-        date: "Jan 12, 2026",
-        amount: 25000,
-        status: "Completed",
-        txId: "TX-4409-SPX",
-      },
-    ],
-  },
-  {
-    id: "RN104829105",
-    vin: "7G2CE1E38RA009412",
-    name: "Cyberbeast",
-    model: "X3 Cybertruck",
-    trim: "Cyberbeast Tri-Motor · Armor Monolith",
-    color: "Cold-Rolled 30X Stainless Steel",
-    interior: "Tactical Gray Armor Cabin",
-    wheels: "20\" Cyber Wheels with 35\" All-Terrain Tires",
-    galleryImages: [
-      { label: "Exoskeleton Front", url: "/assets/cybertruck/cybertruck-hero.avif" },
-    ],
-    turntableFrames: ["/assets/cybertruck/cybertruck-hero.avif"],
-    status: "In Assembly",
-    deliveryEstimate: "November 05 – November 25, 2026",
-    deliveryCenter: "Austin South Delivery Hub",
-    batteryPercent: 88,
-    rangeMiles: 340,
-    odometer: 6,
-    isLocked: true,
-    climateOn: false,
-    climateTemp: 70,
-    sentryActive: true,
-    chargeLimit: 80,
-    upgrades: [
-      {
-        id: "upg-bed-extender",
-        title: "Bed-Mounted 50 kWh Range Extender",
-        category: "Hardware",
-        badge: "470+ MI RANGE",
-        price: 16000,
-        description: "Factory auxiliary battery pack fitted cleanly into the truck bed for cross-country heavy towing.",
-        specsBoost: { label: "Total Range", value: "340 mi → 470 mi" },
-        installed: false,
-      },
-      {
-        id: "upg-lightbar",
-        title: "Cyber 500-Meter Laser Roof Lightbar",
-        category: "Hardware",
-        badge: "50,000 LUMENS",
-        price: 2800,
-        description: "Flush integrated roof lightbar illuminating trails up to 500 meters ahead.",
-        specsBoost: { label: "Forward Lumens", value: "Standard → 50,000 lm" },
-        installed: false,
-      },
-    ],
-    tasks: [
-      { title: "Delivery Location", completed: true, desc: "Austin South Hub selected." },
-      { title: "Driver License Upload", completed: true, desc: "Verified via DMV records." },
-      { title: "Insurance Upload", completed: false, desc: "Pending proof of vehicle insurance policy." },
-    ],
-    documents: [
-      { title: "Cybertruck Order Agreement", date: "Dec 02, 2025", size: "1.2 MB" },
-      { title: "Stainless Steel Care Guide", date: "Dec 02, 2025", size: "450 KB" },
-    ],
-    purchases: [
-      {
-        id: "ORD-3310-01",
-        title: "X3 Cybertruck Cyberbeast Reservation",
-        date: "Dec 02, 2025",
-        amount: 25000,
-        status: "Escrow Secured",
-        txId: "TX-9901-CYB",
-      },
-    ],
-  },
-];
 
 export function CustomerPortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [emailInput, setEmailInput] = useState("pilot@x3.engineering");
   const [passwordInput, setPasswordInput] = useState("X3Roadster2026!");
   const [authError, setAuthError] = useState("");
-  
-  // Vehicles State
-  const [vehicles, setVehicles] = useState<VehicleOrder[]>(DEFAULT_VEHICLES);
-  const [activeVehicleIndex, setActiveVehicleIndex] = useState(0);
 
-  // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<"controls" | "checklist" | "upgrades" | "charging" | "documents" | "purchases">("controls");
+  // VEHICLE SELECTOR: "cybertruck" vs "roadster"
+  const [activeModel, setActiveModel] = useState<"cybertruck" | "roadster">("cybertruck");
 
-  // Dynamic Motion & 3D Turntable Modes:
-  // "video": 4K Dynamic Motion Driving Video
-  // "turntable": 360-Degree Interactive Drag / Auto-Spin Turntable
-  // "gallery": High-Res Cockpit / Thruster Still
-  const [motionMode, setMotionMode] = useState<"video" | "turntable" | "gallery">("video");
-  const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
-  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [isAutoSpinning, setIsAutoSpinning] = useState(false);
-  const [isVideoMuted, setIsVideoMuted] = useState(true);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(true);
+  // SHARED TELEMETRY
+  const [gear, setGear] = useState<"P" | "R" | "N" | "D">("D");
+  const [speed, setSpeed] = useState(74);
+  const [isDriving, setIsDriving] = useState(true);
+  const [fsdActive, setFsdActive] = useState(true);
+  const [isLocked, setIsLocked] = useState(true);
+  const [headlights, setHeadlights] = useState<"off" | "auto" | "high">("auto");
 
-  // Simulated Car State Controls
-  const [headlightsOn, setHeadlightsOn] = useState(false);
-  const [thrusterPurging, setThrusterPurging] = useState(false);
-  const [suspensionSetting, setSuspensionSetting] = useState<"low" | "standard" | "high">("low");
+  // CYBERTRUCK SPECIFIC STATE
+  const [cyberHeight, setCyberHeight] = useState<"Entry" | "Low" | "Medium" | "High" | "Extract">("Medium");
+  const [vaultCover, setVaultCover] = useState<"closed" | "opening" | "open">("closed");
+  const [wadeMode, setWadeMode] = useState(false);
+  const [rearLocker, setRearLocker] = useState(false);
+  const [steerAngle, setSteerAngle] = useState(0);
 
-  // Drag interaction for 360 Turntable
-  const isDraggingRef = useRef(false);
-  const startXRef = useRef(0);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // ROADSTER SPECIFIC STATE
+  const [rocketMode, setRocketMode] = useState(false);
+  const [thrusterPSI, setThrusterPSI] = useState(10000);
+  const [aeroWingAngle, setAeroWingAngle] = useState(12);
+  const [gForceLateral, setGForceLateral] = useState(0.42);
+  const [launchTimer, setLaunchTimer] = useState("1.10s");
+  const [thrusterFiring, setThrusterFiring] = useState(false);
 
-  // Remote Actions
-  const [toastAlert, setToastAlert] = useState<string | null>(null);
-  const [flashingUpgradeId, setFlashingUpgradeId] = useState<string | null>(null);
-  const [flashProgress, setFlashProgress] = useState(0);
+  // APP DRAWER / MODAL
+  const [activeApp, setActiveApp] = useState<"none" | "controls" | "upgrades" | "charging" | "music">("none");
 
-  // Monroney Modal
-  const [showMonroneyModal, setShowMonroneyModal] = useState(false);
+  // CLIMATE
+  const [driverTemp, setDriverTemp] = useState(68);
+  const [passengerTemp, setPassengerTemp] = useState(68);
+
+  // MEDIA
+  const [isPlayingMusic, setIsPlayingMusic] = useState(true);
+  const [volume, setVolume] = useState(75);
+
+  // NOTIFICATION
+  const [hudAlert, setHudAlert] = useState<string | null>(null);
+
+  // ROAD ANIMATION
+  const [roadOffset, setRoadOffset] = useState(0);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.localStorage) {
@@ -397,38 +183,39 @@ export function CustomerPortalPage() {
     }
   }, []);
 
-  // Turntable Auto-spin loop
+  // Continuous road and steering simulation
   useEffect(() => {
-    let interval: any;
-    if (motionMode === "turntable" && isAutoSpinning) {
-      interval = setInterval(() => {
-        setCurrentFrameIndex((prev) => (prev + 1) % ROADSTER_TURNTABLE_FRAMES.length);
-      }, 100);
-    }
-    return () => clearInterval(interval);
-  }, [motionMode, isAutoSpinning]);
-
-  const currentCar = vehicles[activeVehicleIndex] || vehicles[0];
+    let anim: number;
+    let t = 0;
+    const loop = () => {
+      if (isDriving && gear === "D") {
+        setRoadOffset((prev) => (prev + 3.5) % 40);
+        t += 0.03;
+        setSteerAngle(Math.sin(t) * 8); // Subtle natural road steering
+      }
+      anim = requestAnimationFrame(loop);
+    };
+    anim = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(anim);
+  }, [isDriving, gear]);
 
   const handleLogin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (emailInput.trim().length > 3 && passwordInput.length > 4) {
-      playHapticBeep("success");
+      playTeslaHaptic("fsd");
       if (typeof window !== "undefined" && window.localStorage) {
         localStorage.setItem("x3_pilot_authenticated", "true");
       }
       setIsAuthenticated(true);
       setAuthError("");
     } else {
-      playHapticBeep("click");
-      setAuthError("Please provide valid login credentials.");
+      playTeslaHaptic("click");
+      setAuthError("Please enter valid credentials.");
     }
   };
 
   const handleQuickDemoLogin = () => {
-    playHapticBeep("success");
-    setEmailInput("pilot@x3.engineering");
-    setPasswordInput("X3Roadster2026!");
+    playTeslaHaptic("fsd");
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.setItem("x3_pilot_authenticated", "true");
     }
@@ -436,135 +223,55 @@ export function CustomerPortalPage() {
   };
 
   const handleLogout = () => {
-    playHapticBeep("click");
+    playTeslaHaptic("click");
     if (typeof window !== "undefined" && window.localStorage) {
       localStorage.removeItem("x3_pilot_authenticated");
     }
     setIsAuthenticated(false);
   };
 
-  // Toggle Car Lock
-  const toggleLock = () => {
-    playHapticBeep("lock");
-    setVehicles((prev) =>
-      prev.map((v, i) =>
-        i === activeVehicleIndex ? { ...v, isLocked: !v.isLocked } : v
-      )
-    );
-    setToastAlert(currentCar.isLocked ? "Doors Unlocked." : "Vehicle Locked & Monolith Secured.");
-    setTimeout(() => setToastAlert(null), 3000);
+  const shiftGear = (newGear: "P" | "R" | "N" | "D") => {
+    playTeslaHaptic("gear");
+    setGear(newGear);
+    if (newGear === "P") {
+      setSpeed(0);
+      setIsDriving(false);
+      setHudAlert("PARK ENGAGED · EMERGENCY BRAKE SET");
+    } else if (newGear === "D") {
+      setSpeed(activeModel === "roadster" ? 85 : 72);
+      setIsDriving(true);
+      setHudAlert("DRIVE ENGAGED · FSD HIGHWAY AUTONOMY READY");
+    } else if (newGear === "R") {
+      setSpeed(5);
+      setIsDriving(true);
+      setHudAlert("REVERSE · REAR RADAR ACTIVE");
+    }
+    setTimeout(() => setHudAlert(null), 3000);
   };
 
-  // Toggle Climate
-  const toggleClimate = () => {
-    playHapticBeep("click");
-    setVehicles((prev) =>
-      prev.map((v, i) =>
-        i === activeVehicleIndex ? { ...v, climateOn: !v.climateOn } : v
-      )
-    );
-    setToastAlert(currentCar.climateOn ? "Climate Turned Off." : `Climate Turned On to ${currentCar.climateTemp}°F.`);
-    setTimeout(() => setToastAlert(null), 3000);
-  };
-
-  // Cold Gas Thruster Purge
-  const purgeThrusters = () => {
-    playHapticBeep("thruster");
-    setThrusterPurging(true);
-    setToastAlert("🚀 Cold-Gas Thrusters: 50 PSI Manifold Test Purge Active!");
+  const triggerColdGasPurge = () => {
+    playTeslaHaptic("thruster");
+    setThrusterFiring(true);
+    setHudAlert("🚀 COLD-GAS THRUSTERS: 10,000 PSI REACTION PULSE FIRED");
     setTimeout(() => {
-      setThrusterPurging(false);
-      setToastAlert(null);
+      setThrusterFiring(false);
+      setHudAlert(null);
     }, 3500);
   };
 
-  // Flash Lights
-  const flashLights = () => {
-    playHapticBeep("click");
-    setHeadlightsOn(true);
-    setToastAlert("💡 Matrix LED Headlights: High-Beam Laser Beacons Active.");
-    setTimeout(() => {
-      setHeadlightsOn(false);
-      setToastAlert(null);
-    }, 3000);
-  };
-
-  // Drag handler for 360 turntable
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (motionMode !== "turntable") return;
-    isDraggingRef.current = true;
-    startXRef.current = e.clientX;
-    setIsAutoSpinning(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingRef.current || motionMode !== "turntable") return;
-    const delta = e.clientX - startXRef.current;
-    if (Math.abs(delta) > 12) {
-      const step = delta > 0 ? 1 : -1;
-      setCurrentFrameIndex((prev) => {
-        const next = prev + step;
-        if (next < 0) return ROADSTER_TURNTABLE_FRAMES.length - 1;
-        return next % ROADSTER_TURNTABLE_FRAMES.length;
-      });
-      startXRef.current = e.clientX;
-    }
-  };
-
-  const handleMouseUp = () => {
-    isDraggingRef.current = false;
-  };
-
-  // Purchase Upgrade
-  const handlePurchaseUpgrade = (upgrade: VehicleUpgrade) => {
-    if (upgrade.installed || flashingUpgradeId) return;
-
-    playHapticBeep("click");
-    setFlashingUpgradeId(upgrade.id);
-    setFlashProgress(15);
-
-    setTimeout(() => setFlashProgress(50), 600);
-    setTimeout(() => setFlashProgress(85), 1300);
-    setTimeout(() => {
-      setFlashProgress(100);
-      playHapticBeep("success");
-
-      setTimeout(() => {
-        setVehicles((prev) =>
-          prev.map((v, i) => {
-            if (i !== activeVehicleIndex) return v;
-            const newPurchase: PurchaseItem = {
-              id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-              title: upgrade.title,
-              date: "Just Now",
-              amount: upgrade.price,
-              status: "Completed",
-              txId: `TX-${Math.random().toString(16).slice(2, 6).toUpperCase()}`,
-            };
-            return {
-              ...v,
-              upgrades: v.upgrades.map((u) =>
-                u.id === upgrade.id ? { ...u, installed: true } : u
-              ),
-              purchases: [newPurchase, ...v.purchases],
-            };
-          })
-        );
-        setFlashingUpgradeId(null);
-        setToastAlert(`✓ ${upgrade.title} Installed to ${currentCar.vin}!`);
-        setTimeout(() => setToastAlert(null), 4000);
-      }, 700);
-    }, 2000);
+  const toggleVault = () => {
+    playTeslaHaptic("locker");
+    setVaultCover((prev) => (prev === "closed" ? "open" : "closed"));
+    setHudAlert(vaultCover === "closed" ? "MOTORIZED VAULT OPENING..." : "MOTORIZED VAULT SEALED");
+    setTimeout(() => setHudAlert(null), 3000);
   };
 
   // =========================================================================
-  // 1. TESLA SIGN-IN EXPERIENCE
+  // AUTHENTICATION SCREEN
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="relative min-h-screen bg-black text-white flex flex-col justify-between selection:bg-[#E82127] selection:text-white">
-        <SiteHeader />
-
+      <div className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-[#E82127] selection:text-white">
         <div className="flex-1 flex items-center justify-center px-4 py-16">
           <div className="w-full max-w-md space-y-8">
             <div className="text-center space-y-2">
@@ -572,10 +279,10 @@ export function CustomerPortalPage() {
                 <X3Logo3D size="md" />
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-white font-sans">
-                Tesla Account
+                Tesla In-Car System
               </h1>
               <p className="text-xs text-white/50 font-mono">
-                Sign in to manage your vehicle delivery, live 3D controls, and over-the-air upgrades.
+                Model-Specific Digital Cockpit Touchscreen Architecture
               </p>
             </div>
 
@@ -583,7 +290,7 @@ export function CustomerPortalPage() {
               <div className="flex items-center justify-between text-white/70">
                 <span className="font-bold flex items-center gap-1.5 text-[#E82127]">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>DEMO PILOT ACCOUNT</span>
+                  <span>OFFICIAL PILOT ACCESS</span>
                 </span>
                 <span className="text-[10px] text-emerald-400">Ready</span>
               </div>
@@ -596,7 +303,7 @@ export function CustomerPortalPage() {
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
                 <label className="block text-xs font-mono uppercase text-white/60 mb-1">
-                  Email
+                  Driver Account Email
                 </label>
                 <input
                   type="email"
@@ -626,7 +333,7 @@ export function CustomerPortalPage() {
                 type="submit"
                 className="w-full rounded-lg bg-[#3E6AE1] hover:bg-[#3457B2] py-3 text-sm font-semibold text-white transition-colors"
               >
-                Sign In
+                Enter Digital Cockpit
               </button>
 
               <button
@@ -645,813 +352,786 @@ export function CustomerPortalPage() {
             </div>
           </div>
         </div>
-
-        <SiteFooter />
       </div>
     );
   }
 
   // =========================================================================
-  // 2. OFFICIAL TESLA CUSTOMER DASHBOARD WITH DYNAMIC 3D / MOTION CAR
+  // MODEL-SPECIFIC FUTURISTIC DIGITAL TOUCHSCREEN
   // =========================================================================
   return (
-    <div
-      className="min-h-screen bg-black text-white flex flex-col justify-between selection:bg-[#E82127] selection:text-white select-none"
-      onMouseUp={handleMouseUp}
-    >
-      <SiteHeader />
+    <div className="min-h-screen bg-[#040406] text-white flex flex-col justify-center items-center p-2 sm:p-4 md:p-6 lg:p-8 select-none font-sans overflow-x-hidden">
+      
+      {/* 18.5" TABLET BEZEL CONTAINER */}
+      <div
+        className={`relative w-full max-w-[1540px] aspect-[16/9] min-h-[760px] rounded-[36px] sm:rounded-[44px] border-[12px] sm:border-[16px] shadow-[0_30px_100px_rgba(0,0,0,0.98)] flex flex-col justify-between overflow-hidden transition-all duration-700 ${
+          activeModel === "cybertruck"
+            ? "border-[#22242B] bg-[#0A0B0E]"
+            : "border-[#1A181C] bg-[#070609]"
+        }`}
+      >
+        {/* Bezel Interior Chamfer Highlight */}
+        <div className="pointer-events-none absolute inset-0 rounded-[24px] border border-white/10 shadow-inner z-30" />
 
-      {/* Toast Alert */}
-      {toastAlert && (
-        <div className="fixed top-20 right-4 sm:right-8 z-50 rounded-xl border border-white/20 bg-[#161616] px-5 py-3 text-xs font-mono text-white shadow-2xl backdrop-blur-2xl animate-fadeIn">
-          {toastAlert}
-        </div>
-      )}
-
-      {/* OTA Flashing Progress Modal */}
-      {flashingUpgradeId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-[#121212] p-6 text-white space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm font-bold">Software Update in Progress</div>
-              <div className="text-xs font-mono text-[#E82127] font-bold">{flashProgress}%</div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-[#E82127] transition-all duration-300"
-                style={{ width: `${flashProgress}%` }}
-              />
-            </div>
-            <p className="text-xs text-white/60 font-mono">
-              Flashing digital cryptographic firmware over Starlink mesh directly to VIN {currentCar.vin}...
-            </p>
-          </div>
-        </div>
-      )}
-
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:py-8 space-y-6">
-        
-        {/* TOP STATUS BAR: VEHICLE SWITCHER & BATTERY / LOCATION */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-4">
+        {/* =================================================================== */}
+        {/* TOP COCKPIT STATUS BAR                                              */}
+        {/* =================================================================== */}
+        <div
+          className={`relative z-20 h-14 border-b px-6 flex items-center justify-between text-xs font-mono transition-colors duration-500 ${
+            activeModel === "cybertruck"
+              ? "border-[#2A2D38] bg-[#0E1015]/90 text-[#D8DAE2]"
+              : "border-white/10 bg-black/90 text-white"
+          }`}
+        >
+          {/* Top Left: PRND Strip + Speedometer */}
+          <div className="flex items-center gap-6">
             
-            {/* Multi-Vehicle Picker */}
-            <div className="flex items-center gap-2">
-              {vehicles.map((v, idx) => (
+            {/* PRND Gear Selector */}
+            <div className="flex items-center gap-1.5 font-bold text-sm">
+              {(["P", "R", "N", "D"] as const).map((g) => (
                 <button
-                  key={v.id}
-                  onClick={() => {
-                    playHapticBeep("click");
-                    setActiveVehicleIndex(idx);
-                    setActiveGalleryIndex(0);
-                    setCurrentFrameIndex(0);
-                  }}
-                  className={`rounded-full px-4 py-1.5 text-xs font-mono font-semibold transition-all ${
-                    activeVehicleIndex === idx
-                      ? "bg-white text-black"
-                      : "bg-[#161616] text-white/60 hover:text-white"
+                  key={g}
+                  onClick={() => shiftGear(g)}
+                  className={`w-7 h-7 rounded-lg grid place-items-center transition-all ${
+                    gear === g
+                      ? activeModel === "cybertruck"
+                        ? "bg-[#E6A020] text-black font-black shadow-md shadow-[#E6A020]/30"
+                        : "bg-white text-black font-black shadow-md"
+                      : "text-white/40 hover:text-white"
                   }`}
                 >
-                  {v.name}
+                  {g}
                 </button>
               ))}
             </div>
 
-            <div className="hidden sm:block h-4 w-[1px] bg-white/20" />
+            <div className="h-4 w-[1px] bg-white/20" />
 
-            <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-white/60">
-              <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span>{currentCar.status} · {currentCar.deliveryCenter}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="flex items-center gap-2">
-              <BatteryCharging className="h-4 w-4 text-emerald-400" />
-              <span className="font-bold text-white">{currentCar.batteryPercent}%</span>
-              <span className="text-white/50">({currentCar.rangeMiles} mi)</span>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-white/60 hover:text-white transition-colors"
-            >
-              Sign Out
-            </button>
-          </div>
-        </div>
-
-        {/* NAVIGATION TABS (MATCHING TESLA ECOSYSTEM) */}
-        <div className="flex border-b border-white/10 gap-6 text-xs font-mono uppercase tracking-wider overflow-x-auto pb-1 scrollbar-none">
-          {[
-            { id: "controls", label: "Controls & 3D Motion" },
-            { id: "checklist", label: "Delivery Checklist" },
-            { id: "upgrades", label: "Upgrades & Store" },
-            { id: "purchases", label: "Purchases & Invoices" },
-            { id: "charging", label: "Charging & Stats" },
-            { id: "documents", label: "Documents & Specs" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                playHapticBeep("click");
-                setActiveTab(tab.id as any);
-              }}
-              className={`pb-3 font-semibold transition-colors border-b-2 -mb-[1px] ${
-                activeTab === tab.id
-                  ? "border-white text-white"
-                  : "border-transparent text-white/40 hover:text-white"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ================================================================= */}
-        {/* TAB 1: CONTROLS & DYNAMIC 3D/MOTION CAR                           */}
-        {/* ================================================================= */}
-        {activeTab === "controls" && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
-            {/* Center Dynamic Vehicle Motion Viewport */}
-            <div className="lg:col-span-8 rounded-3xl border border-white/10 bg-[#0E0E10] p-6 sm:p-8 space-y-6">
-              
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold font-sans tracking-tight text-white">
-                    {currentCar.model}
-                  </h2>
-                  <p className="text-xs font-mono text-white/60 mt-0.5">
-                    {currentCar.trim} · VIN: <span className="text-white">{currentCar.vin}</span>
-                  </p>
-                </div>
-
-                {/* Motion Mode Pill Switcher */}
-                <div className="flex items-center gap-1 rounded-full border border-white/15 bg-[#161616] p-1 font-mono text-xs">
-                  {currentCar.heroVideo && (
-                    <button
-                      onClick={() => {
-                        playHapticBeep("click");
-                        setMotionMode("video");
-                      }}
-                      className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-all ${
-                        motionMode === "video" ? "bg-white text-black" : "text-white/60 hover:text-white"
-                      }`}
-                    >
-                      <Play className="h-3 w-3" />
-                      <span>Live Motion</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      playHapticBeep("click");
-                      setMotionMode("turntable");
-                      setIsAutoSpinning(true);
-                    }}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-all ${
-                      motionMode === "turntable" ? "bg-white text-black" : "text-white/60 hover:text-white"
-                    }`}
-                  >
-                    <RotateCw className="h-3 w-3" />
-                    <span>360° Turntable</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      playHapticBeep("click");
-                      setMotionMode("gallery");
-                    }}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold transition-all ${
-                      motionMode === "gallery" ? "bg-white text-black" : "text-white/60 hover:text-white"
-                    }`}
-                  >
-                    <Eye className="h-3 w-3" />
-                    <span>Angles</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* MAIN DYNAMIC VIEWPORT (CAN BE LIVE 4K MOTION, 360 TURNTABLE, OR ANGLE) */}
-              <div
-                className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-black border border-white/10 cursor-grab active:cursor-grabbing group"
-                onMouseDown={handleMouseDown}
-                onMouseMove={handleMouseMove}
-              >
-                {/* 1. LIVE MOTION VIDEO MODE */}
-                {motionMode === "video" && currentCar.heroVideo && (
-                  <div className="relative h-full w-full">
-                    <video
-                      ref={videoRef}
-                      src={currentCar.heroVideo}
-                      autoPlay
-                      loop
-                      muted={isVideoMuted}
-                      playsInline
-                      className="h-full w-full object-cover object-center filter contrast-110"
-                    />
-                    
-                    {/* Video Audio Control Overlay */}
-                    <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                      <button
-                        onClick={() => setIsVideoMuted(!isVideoMuted)}
-                        className="rounded-full bg-black/70 border border-white/20 p-2 text-white/80 hover:text-white backdrop-blur-md"
-                        title={isVideoMuted ? "Unmute Audio" : "Mute Audio"}
-                      >
-                        {isVideoMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-[#E82127]" />}
-                      </button>
-                    </div>
-
-                    <div className="absolute top-4 left-4 rounded-full bg-black/80 border border-white/15 px-3 py-1 text-xs font-mono text-white backdrop-blur-md flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-[#E82127] animate-ping" />
-                      <span>4K DYNAMIC TRACK MOTION</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 2. 360-DEGREE INTERACTIVE TURNTABLE ROTATION */}
-                {motionMode === "turntable" && (
-                  <div className="relative h-full w-full flex items-center justify-center">
-                    <img
-                      src={currentCar.turntableFrames[currentFrameIndex] || currentCar.turntableFrames[0]}
-                      alt="360 Turntable Frame"
-                      className="h-full w-full object-cover object-center filter contrast-105 pointer-events-none"
-                    />
-
-                    {/* Turntable Overlay Instructions */}
-                    <div className="absolute top-4 left-4 rounded-full bg-black/80 border border-white/15 px-3.5 py-1 text-xs font-mono text-white backdrop-blur-md flex items-center gap-2">
-                      <RotateCw className="h-3 w-3 text-emerald-400" />
-                      <span>360° INTERACTIVE TURNTABLE (DRAG TO ROTATE)</span>
-                    </div>
-
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 rounded-full bg-black/80 border border-white/20 px-4 py-1.5 backdrop-blur-md text-xs font-mono">
-                      <button
-                        onClick={() => setIsAutoSpinning(!isAutoSpinning)}
-                        className="flex items-center gap-1.5 text-white hover:text-emerald-400 font-semibold"
-                      >
-                        {isAutoSpinning ? <Pause className="h-3.5 w-3.5 text-[#E82127]" /> : <Play className="h-3.5 w-3.5 text-emerald-400" />}
-                        <span>{isAutoSpinning ? "Pause Spin" : "Auto-Spin 360°"}</span>
-                      </button>
-                      <span className="text-white/30">|</span>
-                      <span className="text-white/60">Angle {currentFrameIndex + 1} / {currentCar.turntableFrames.length}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. HIGH-RES ANGLE GALLERY */}
-                {motionMode === "gallery" && (
-                  <div className="relative h-full w-full">
-                    <img
-                      src={currentCar.galleryImages[activeGalleryIndex]?.url || currentCar.heroImage}
-                      alt={currentCar.name}
-                      className="h-full w-full object-cover object-center filter contrast-105 transition-all duration-500"
-                    />
-                    <div className="absolute top-4 left-4 rounded-full bg-black/80 border border-white/15 px-3 py-1 text-xs font-mono text-white backdrop-blur-md">
-                      {currentCar.galleryImages[activeGalleryIndex]?.label}
-                    </div>
-                  </div>
-                )}
-
-                {/* DYNAMIC VISUAL OVERLAYS: HEADLIGHT BEAMS */}
-                {headlightsOn && (
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-transparent to-transparent mix-blend-screen animate-pulse" />
-                )}
-
-                {/* DYNAMIC VISUAL OVERLAYS: COLD-GAS THRUSTER PLUME */}
-                {thrusterPurging && (
-                  <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-64 h-32 bg-[radial-gradient(ellipse_at_right,rgba(232,33,39,0.8),transparent_70%)] blur-md animate-ping" />
-                )}
-              </div>
-
-              {/* View Switchers when in Gallery Mode */}
-              {motionMode === "gallery" && (
-                <div className="flex flex-wrap gap-2">
-                  {currentCar.galleryImages.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        playHapticBeep("click");
-                        setActiveGalleryIndex(idx);
-                      }}
-                      className={`rounded-xl px-3.5 py-2 text-xs font-mono font-medium transition-colors ${
-                        activeGalleryIndex === idx
-                          ? "bg-white text-black"
-                          : "bg-[#18181A] text-white/60 hover:text-white"
-                      }`}
-                    >
-                      {img.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Quick Remote Controls Bar */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                <button
-                  onClick={toggleLock}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border border-white/10 bg-[#161616] hover:bg-[#1f1f1f] transition-all"
-                >
-                  {currentCar.isLocked ? (
-                    <Lock className="h-5 w-5 text-white mb-2" />
-                  ) : (
-                    <Unlock className="h-5 w-5 text-emerald-400 mb-2" />
-                  )}
-                  <span className="text-xs font-mono font-bold text-white">
-                    {currentCar.isLocked ? "Unlock Doors" : "Lock Doors"}
-                  </span>
-                  <span className="text-[10px] text-white/40 mt-0.5">
-                    {currentCar.isLocked ? "Locked" : "Unlocked"}
-                  </span>
-                </button>
-
-                <button
-                  onClick={toggleClimate}
-                  className="flex flex-col items-center justify-center p-4 rounded-2xl border border-white/10 bg-[#161616] hover:bg-[#1f1f1f] transition-all"
-                >
-                  <Fan className={`h-5 w-5 mb-2 ${currentCar.climateOn ? "text-blue-400 animate-spin" : "text-white"}`} />
-                  <span className="text-xs font-mono font-bold text-white">Climate</span>
-                  <span className="text-[10px] text-white/40 mt-0.5">
-                    {currentCar.climateOn ? `${currentCar.climateTemp}°F On` : "Off"}
-                  </span>
-                </button>
-
-                <button
-                  onClick={purgeThrusters}
-                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
-                    thrusterPurging
-                      ? "border-[#E82127] bg-[#E82127]/20 shadow-[0_0_20px_rgba(232,33,39,0.5)]"
-                      : "border-white/10 bg-[#161616] hover:bg-[#1f1f1f]"
-                  }`}
-                >
-                  <Flame className="h-5 w-5 text-[#E82127] mb-2" />
-                  <span className="text-xs font-mono font-bold text-white">Cold-Gas Thrusters</span>
-                  <span className="text-[10px] text-white/40 mt-0.5">
-                    {thrusterPurging ? "Purging 50 PSI..." : "Test Purge"}
-                  </span>
-                </button>
-
-                <button
-                  onClick={flashLights}
-                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border transition-all ${
-                    headlightsOn
-                      ? "border-yellow-400 bg-yellow-400/20"
-                      : "border-white/10 bg-[#161616] hover:bg-[#1f1f1f]"
-                  }`}
-                >
-                  <Sparkles className="h-5 w-5 text-yellow-400 mb-2" />
-                  <span className="text-xs font-mono font-bold text-white">Flash Lights</span>
-                  <span className="text-[10px] text-white/40 mt-0.5">Matrix Beams</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Right Column: Vehicle Diagnostics & TPMS */}
-            <div className="lg:col-span-4 space-y-6">
-              
-              {/* Sentry & Security */}
-              <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase text-white/60">Sentry Mode</span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-mono text-emerald-400">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                    Armed
-                  </span>
-                </div>
-                <div className="text-sm font-bold text-white">
-                  360° Vision Cameras Guarding Perimeter
-                </div>
-                <p className="text-xs text-white/50 font-mono">
-                  Autonomous threat detection active. Starlink live feed ready.
-                </p>
-              </div>
-
-              {/* 4-Wheel Tire Pressure (TPMS) */}
-              <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <span className="text-xs font-mono uppercase text-white/60">Tire Pressure (TPMS)</span>
-                  <span className="text-[10px] font-mono text-emerald-400">Cold PSI Nominal</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-center font-mono">
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-[10px] text-white/40">FRONT LEFT</div>
-                    <div className="text-xl font-bold text-emerald-400 mt-0.5">42 PSI</div>
-                    <div className="text-[9px] text-white/30">102°F</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-[10px] text-white/40">FRONT RIGHT</div>
-                    <div className="text-xl font-bold text-emerald-400 mt-0.5">42 PSI</div>
-                    <div className="text-[9px] text-white/30">102°F</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-[10px] text-white/40">REAR LEFT</div>
-                    <div className="text-xl font-bold text-emerald-400 mt-0.5">44 PSI</div>
-                    <div className="text-[9px] text-white/30">104°F</div>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-                    <div className="text-[10px] text-white/40">REAR RIGHT</div>
-                    <div className="text-xl font-bold text-emerald-400 mt-0.5">44 PSI</div>
-                    <div className="text-[9px] text-white/30">104°F</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Suspension Height Setting */}
-              <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 space-y-3 font-mono text-xs">
-                <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                  <span className="text-xs uppercase text-white/60 font-bold">Smart Air Suspension</span>
-                  <span className="text-emerald-400 font-bold uppercase">{suspensionSetting}</span>
-                </div>
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  {(["low", "standard", "high"] as const).map((lvl) => (
-                    <button
-                      key={lvl}
-                      onClick={() => setSuspensionSetting(lvl)}
-                      className={`py-2 rounded-xl border text-center uppercase font-bold text-[10px] transition-colors ${
-                        suspensionSetting === lvl
-                          ? "border-white bg-white text-black"
-                          : "border-white/10 bg-white/5 text-white/60 hover:text-white"
-                      }`}
-                    >
-                      {lvl === "low" ? "Low (Track)" : lvl}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB 2: DELIVERY CHECKLIST                                         */}
-        {/* ================================================================= */}
-        {activeTab === "checklist" && (
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 sm:p-8 space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold font-sans">Vehicle Delivery Schedule</h3>
-                  <p className="text-xs font-mono text-white/60 mt-1">
-                    Estimated Delivery Window: <span className="text-white font-bold">{currentCar.deliveryEstimate}</span>
-                  </p>
-                </div>
-                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-mono text-emerald-400">
-                  Ready for QA Verification
+            {/* Speedometer */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl sm:text-3xl font-black font-sans text-white tracking-tight">
+                  {speed}
                 </span>
+                <span className="text-[10px] text-white/50 uppercase font-mono">MPH</span>
               </div>
 
-              <div className="space-y-4 pt-2">
-                <div className="text-xs font-mono uppercase tracking-wider text-white/60">
-                  Required Action Tasks Before Delivery:
-                </div>
-
-                {currentCar.tasks.map((task, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-4 p-4 rounded-2xl border border-white/10 bg-[#141416]"
-                  >
-                    <div className="mt-0.5">
-                      {task.completed ? (
-                        <div className="h-6 w-6 rounded-full bg-emerald-500/20 border border-emerald-500 text-emerald-400 grid place-items-center">
-                          <Check className="h-3.5 w-3.5" />
-                        </div>
-                      ) : (
-                        <div className="h-6 w-6 rounded-full border border-white/30 grid place-items-center text-xs font-mono text-white/50">
-                          {idx + 1}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-white font-sans">{task.title}</span>
-                        <span className={`text-[10px] font-mono font-bold ${task.completed ? "text-emerald-400" : "text-[#E82127]"}`}>
-                          {task.completed ? "COMPLETED" : "PENDING"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-white/60 font-mono mt-1">{task.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB 3: UPGRADES & SOFTWARE STORE                                  */}
-        {/* ================================================================= */}
-        {activeTab === "upgrades" && (
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
-              <div>
-                <h3 className="text-xl font-bold font-sans">Tesla Software & Hardware Upgrades</h3>
-                <p className="text-xs font-mono text-white/60 mt-0.5">
-                  Enhance your {currentCar.model} with instant over-the-air performance calibrations and official hardware packages.
-                </p>
-              </div>
-              <div className="text-xs font-mono text-white/60">
-                Connected Vehicle: <span className="text-white font-bold">{currentCar.vin}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentCar.upgrades.map((upg) => (
-                <div
-                  key={upg.id}
-                  className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 flex flex-col justify-between space-y-6 hover:border-white/20 transition-all"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono uppercase bg-white/10 px-2.5 py-1 rounded-full text-white/80">
-                        {upg.category}
-                      </span>
-                      <span className="text-[10px] font-mono text-[#E82127] font-bold">
-                        {upg.badge}
-                      </span>
-                    </div>
-
-                    <h4 className="text-lg font-bold font-sans text-white">{upg.title}</h4>
-                    <p className="text-xs text-white/60 font-mono leading-relaxed">
-                      {upg.description}
-                    </p>
-
-                    <div className="rounded-xl border border-white/10 bg-black/40 p-3 font-mono text-xs">
-                      <div className="text-[10px] text-white/40">{upg.specsBoost.label}</div>
-                      <div className="text-emerald-400 font-bold mt-0.5">{upg.specsBoost.value}</div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] font-mono text-white/40">PRICE</div>
-                      <div className="text-xl font-mono font-bold text-white">
-                        ${upg.price.toLocaleString()}
-                      </div>
-                    </div>
-
-                    {upg.installed ? (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
-                        <Check className="h-3.5 w-3.5" />
-                        <span>Installed</span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handlePurchaseUpgrade(upg)}
-                        disabled={flashingUpgradeId !== null}
-                        className="rounded-lg bg-[#3E6AE1] hover:bg-[#3457B2] px-4 py-2 text-xs font-semibold text-white transition-colors"
-                      >
-                        Buy Upgrade
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB 4: PURCHASES & INVOICES                                       */}
-        {/* ================================================================= */}
-        {activeTab === "purchases" && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold font-sans">Purchases & Invoices</h3>
-                  <p className="text-xs font-mono text-white/60 mt-0.5">
-                    Official billing records, order agreements, and receipt downloads for account #X3-ACC-782
-                  </p>
-                </div>
-                <button
-                  onClick={() => alert("Consolidated invoice PDF downloaded.")}
-                  className="rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-mono font-bold text-white flex items-center gap-1.5"
-                >
-                  <Download className="h-3.5 w-3.5 text-white" />
-                  <span>Download Ledger</span>
-                </button>
+              {/* Speed Limit Sign */}
+              <div className="w-7 h-7 rounded-md border-2 border-red-500 bg-white grid place-items-center text-black font-black text-[10px]">
+                65
               </div>
 
-              <div className="space-y-3">
-                {currentCar.purchases.map((p) => (
-                  <div
-                    key={p.id}
-                    className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/10 bg-[#141416] font-mono text-xs"
-                  >
-                    <div>
-                      <div className="font-bold text-white text-sm font-sans">{p.title}</div>
-                      <div className="text-white/40 text-[10px] mt-0.5">
-                        Order #{p.id} · Date: {p.date} · Ref: {p.txId}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-base font-bold text-white">${p.amount.toLocaleString()}</div>
-                      <div className="text-[10px] text-emerald-400 font-bold">{p.status}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB 5: CHARGING & SUPERCHARGING STATS                             */}
-        {/* ================================================================= */}
-        {activeTab === "charging" && (
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold font-sans">Battery & Supercharger Telemetry</h3>
-                  <p className="text-xs font-mono text-white/60 mt-0.5">
-                    High-Density 200 kWh Silicon-Nanowire Pack
-                  </p>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-mono font-bold text-emerald-400">{currentCar.batteryPercent}%</div>
-                  <div className="text-xs font-mono text-white/50">{currentCar.rangeMiles} mi Estimated Range</div>
-                </div>
-              </div>
-
-              <div className="space-y-3 font-mono text-xs">
-                <div className="flex justify-between">
-                  <span className="text-white/60">Charge Limit</span>
-                  <span className="text-white font-bold">{currentCar.chargeLimit}% (Daily Limit)</span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={currentCar.chargeLimit}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    setVehicles((prev) =>
-                      prev.map((v, i) =>
-                        i === activeVehicleIndex ? { ...v, chargeLimit: val } : v
-                      )
-                    );
-                  }}
-                  className="w-full accent-white"
-                />
-                <div className="flex justify-between text-[10px] text-white/40">
-                  <span>50% (Storage)</span>
-                  <span>80% (Daily Trip)</span>
-                  <span>100% (Full Cross-Country)</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs font-mono text-white/50">MAX CHARGING RATE</div>
-                  <div className="text-2xl font-mono font-bold text-white mt-1">350 kW</div>
-                  <div className="text-[10px] text-emerald-400 font-mono mt-0.5">V4 Supercharger Compatible</div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs font-mono text-white/50">CHARGE ADDED / 15 MIN</div>
-                  <div className="text-2xl font-mono font-bold text-white mt-1">+240 mi</div>
-                  <div className="text-[10px] text-white/40 font-mono mt-0.5">Ultra-fast cell absorption</div>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <div className="text-xs font-mono text-white/50">LIFETIME ENERGY SAVINGS</div>
-                  <div className="text-2xl font-mono font-bold text-emerald-400 mt-1">$4,820</div>
-                  <div className="text-[10px] text-white/40 font-mono mt-0.5">Versus premium gasoline</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ================================================================= */}
-        {/* TAB 6: DOCUMENTS, INVOICES & MONRONEY STICKER                     */}
-        {/* ================================================================= */}
-        {activeTab === "documents" && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="rounded-3xl border border-white/10 bg-[#0E0E10] p-6 sm:p-8 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div>
-                  <h3 className="text-xl font-bold font-sans">Official Vehicle Documents</h3>
-                  <p className="text-xs font-mono text-white/60 mt-0.5">
-                    Order agreements, warranty booklets, and window stickers for {currentCar.vin}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowMonroneyModal(true)}
-                  className="rounded-lg bg-white text-black font-semibold px-4 py-2 text-xs font-mono"
-                >
-                  View Monroney Sticker
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {currentCar.documents.map((doc, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-[#161616] font-mono text-xs"
-                  >
-                    <div>
-                      <div className="font-bold text-white font-sans text-sm">{doc.title}</div>
-                      <div className="text-white/40 text-[10px] mt-0.5">
-                        Generated {doc.date} · File Size: {doc.size}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => alert(`Downloading ${doc.title}...`)}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 px-3 py-1.5 text-white/70 hover:text-white transition-colors"
-                    >
-                      <Download className="h-3.5 w-3.5 text-white" />
-                      <span>Download PDF</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* MONRONEY WINDOW STICKER MODAL */}
-      {showMonroneyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-3xl border border-white/20 bg-[#111113] p-6 sm:p-8 text-white space-y-6">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <div className="flex items-center gap-2">
-                <X3Logo3D size="sm" />
-                <h3 className="text-lg font-bold font-sans">Official Monroney Vehicle Window Sticker</h3>
-              </div>
-              <button
-                onClick={() => setShowMonroneyModal(false)}
-                className="text-white/60 hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="rounded-2xl border border-white/15 bg-black p-5 font-mono text-xs space-y-4">
-              <div className="flex justify-between border-b border-white/10 pb-3">
-                <div>
-                  <div className="text-base font-bold text-white">{currentCar.model}</div>
-                  <div className="text-white/50 text-[10px]">{currentCar.trim}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-white/50 text-[10px]">VIN</div>
-                  <div className="font-bold text-white">{currentCar.vin}</div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-[11px]">
-                <div>
-                  <span className="text-white/40">PAINT:</span>
-                  <div className="font-bold text-white">{currentCar.color}</div>
-                </div>
-                <div>
-                  <span className="text-white/40">INTERIOR:</span>
-                  <div className="font-bold text-white">{currentCar.interior}</div>
-                </div>
-                <div>
-                  <span className="text-white/40">WHEELS:</span>
-                  <div className="font-bold text-white">{currentCar.wheels}</div>
-                </div>
-                <div>
-                  <span className="text-white/40">ASSEMBLY POINT:</span>
-                  <div className="font-bold text-white">Tesla Gigafactory Texas, USA</div>
-                </div>
-              </div>
-
-              <div className="border-t border-white/10 pt-3 flex justify-between items-center text-sm font-bold">
-                <span>TOTAL SUGGESTED RETAIL (MSRP):</span>
-                <span className="text-xl font-mono text-white">
-                  ${currentCar.model.includes("Roadster") ? "250,000" : "99,990"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 font-mono text-xs">
-              <button
-                onClick={() => setShowMonroneyModal(false)}
-                className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-white/70 hover:text-white"
-              >
-                Close
-              </button>
+              {/* Autopilot / FSD Status */}
               <button
                 onClick={() => {
-                  alert("Official PDF downloaded.");
-                  setShowMonroneyModal(false);
+                  playTeslaHaptic("fsd");
+                  setFsdActive(!fsdActive);
                 }}
-                className="rounded-lg bg-white text-black px-4 py-2 font-bold"
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold font-mono transition-all ${
+                  fsdActive
+                    ? activeModel === "cybertruck"
+                      ? "bg-[#E6A020] text-black shadow-[0_0_12px_rgba(230,160,32,0.6)]"
+                      : "bg-[#3E6AE1] text-white shadow-[0_0_12px_rgba(62,106,225,0.8)]"
+                    : "bg-white/10 text-white/40"
+                }`}
               >
-                Download PDF
+                <Compass className="h-3.5 w-3.5" />
+                <span>{fsdActive ? "FSD SUPERVISED" : "MANUAL DRIVER"}</span>
               </button>
             </div>
           </div>
-        </div>
-      )}
 
-      <SiteFooter />
+          {/* Top Center: MODEL SWITCHER (CYBERTRUCK vs ROADSTER) */}
+          <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/60 p-1 text-xs">
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveModel("cybertruck");
+              }}
+              className={`rounded-full px-4 py-1.5 font-bold transition-all ${
+                activeModel === "cybertruck"
+                  ? "bg-[#E6A020] text-black shadow-md shadow-[#E6A020]/30"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              📐 Cybertruck Cyberbeast
+            </button>
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveModel("roadster");
+              }}
+              className={`rounded-full px-4 py-1.5 font-bold transition-all ${
+                activeModel === "roadster"
+                  ? "bg-gradient-to-r from-[#E82127] to-[#B31419] text-white shadow-md shadow-[#E82127]/30"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              🚀 Founders Roadster
+            </button>
+          </div>
+
+          {/* Top Right: Battery, Starlink, Clock */}
+          <div className="flex items-center gap-4 text-xs">
+            <div className="flex items-center gap-1.5 font-bold">
+              <BatteryCharging className="h-4 w-4 text-emerald-400" />
+              <span>{activeModel === "cybertruck" ? "88%" : "98%"}</span>
+              <span className="text-white/40 font-normal">
+                ({activeModel === "cybertruck" ? "340 mi" : "620 mi"})
+              </span>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-3 text-white/70">
+              <span className="flex items-center gap-1 text-[11px]">
+                <Wifi className="h-3.5 w-3.5 text-blue-400" />
+                <span>Starlink</span>
+              </span>
+              <span>72°F</span>
+              <span>12:56 AM</span>
+            </div>
+
+            <button onClick={handleLogout} className="text-white/40 hover:text-white text-[11px] font-mono ml-2">
+              Exit
+            </button>
+          </div>
+        </div>
+
+        {/* HUD ALERT TOAST */}
+        {hudAlert && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 rounded-full border border-white/20 bg-black/95 px-6 py-2 text-xs font-mono text-white shadow-2xl backdrop-blur-xl animate-fadeIn flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-[#E82127]" />
+            <span>{hudAlert}</span>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* MAIN SPLIT VIEWPORT                                                */}
+        {/* =================================================================== */}
+        <div className="relative flex-1 w-full grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+          
+          {/* ================================================================= */}
+          {/* LEFT 6 COLUMNS: MODEL-SPECIFIC PROCEDURAL DIGITAL TWIN            */}
+          {/* ================================================================= */}
+          <div
+            className={`lg:col-span-6 relative border-r p-6 flex flex-col justify-between overflow-hidden transition-colors duration-700 ${
+              activeModel === "cybertruck"
+                ? "border-[#2A2D38] bg-gradient-to-b from-[#0F1117] via-[#14161F] to-[#0A0B0E]"
+                : "border-white/10 bg-gradient-to-b from-[#0B090F] via-[#110D17] to-[#060508]"
+            }`}
+          >
+            {/* Real-Time Perspective Road Canvas */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden opacity-60">
+              <svg className="w-full h-full" viewBox="0 0 500 700">
+                <defs>
+                  <linearGradient id="cyberRoad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#1B1E28" stopOpacity="0.1" />
+                    <stop offset="100%" stopColor="#252936" stopOpacity="0.8" />
+                  </linearGradient>
+                </defs>
+
+                <polygon points="180,100 320,100 490,700 10,700" fill="url(#cyberRoad)" />
+                <line x1="180" y1="100" x2="10" y2="700" stroke="#424759" strokeWidth="3" />
+                <line x1="320" y1="100" x2="490" y2="700" stroke="#424759" strokeWidth="3" />
+
+                {/* Animated FSD Center Path */}
+                <line
+                  x1="250"
+                  y1="100"
+                  x2="250"
+                  y2="700"
+                  stroke={activeModel === "cybertruck" ? "#E6A020" : "#3E6AE1"}
+                  strokeWidth="5"
+                  strokeDasharray="30 20"
+                  strokeDashoffset={-roadOffset}
+                />
+              </svg>
+            </div>
+
+            {/* Top Vehicle Telemetry Badge */}
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="inline-flex items-center gap-2 rounded-full bg-black/70 border border-white/15 px-3 py-1 text-[11px] font-mono">
+                <span
+                  className={`h-2 w-2 rounded-full animate-ping ${
+                    activeModel === "cybertruck" ? "bg-[#E6A020]" : "bg-[#E82127]"
+                  }`}
+                />
+                <span className="font-bold text-white">
+                  {activeModel === "cybertruck"
+                    ? "CYBER TRUCK STEER-BY-WIRE HW4"
+                    : "ROADSTER FOUNDERS SPACEX AERO PACK"}
+                </span>
+              </div>
+
+              <div className="text-[10px] font-mono text-white/50">
+                {activeModel === "cybertruck" ? "VIN: 7G2CE1E38RA009412" : "VIN: 5YJSA1E26PF904288"}
+              </div>
+            </div>
+
+            {/* =============================================================== */}
+            {/* MODEL A: CYBERTRUCK PROCEDURAL 3D WIREFRAME TWIN                */}
+            {/* =============================================================== */}
+            {activeModel === "cybertruck" && (
+              <div className="relative z-10 my-auto flex flex-col items-center justify-center">
+                
+                {/* Pure Procedural Cyber Monolith SVG (Zero Static Photos!) */}
+                <div className="relative w-80 sm:w-96 aspect-[16/10] flex items-center justify-center">
+                  <svg
+                    viewBox="0 0 400 240"
+                    className="w-full h-full filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
+                  >
+                    <defs>
+                      <linearGradient id="cyberSteel" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#A8ABB5" />
+                        <stop offset="50%" stopColor="#7E828E" />
+                        <stop offset="100%" stopColor="#555864" />
+                      </linearGradient>
+                      <linearGradient id="armorGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#1E2330" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#0E121A" stopOpacity="0.95" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Ground Shadow */}
+                    <ellipse cx="200" cy="220" rx="160" ry="16" fill="#000000" opacity="0.8" />
+
+                    {/* 4 Wheels with Steer Angle */}
+                    <g transform={`rotate(${steerAngle}, 80, 205)`}>
+                      <rect x="65" y="185" width="30" height="40" rx="8" fill="#18181A" stroke="#444855" strokeWidth="2" />
+                    </g>
+                    <g transform={`rotate(${steerAngle}, 320, 205)`}>
+                      <rect x="305" y="185" width="30" height="40" rx="8" fill="#18181A" stroke="#444855" strokeWidth="2" />
+                    </g>
+
+                    {/* Angular Stainless Steel Exoskeleton */}
+                    <polygon
+                      points="40,195 80,140 180,60 310,135 365,195 340,215 65,215"
+                      fill="url(#cyberSteel)"
+                      stroke="#C5C8D4"
+                      strokeWidth="2.5"
+                    />
+
+                    {/* Armor Glass Canopy */}
+                    <polygon
+                      points="110,135 180,70 270,135"
+                      fill="url(#armorGlass)"
+                      stroke="#586074"
+                      strokeWidth="2"
+                    />
+
+                    {/* Motorized Vault Tonneau Slats */}
+                    {vaultCover === "closed" ? (
+                      <polygon points="185,75 305,135 295,142 185,82" fill="#2E323E" stroke="#505668" strokeWidth="1" />
+                    ) : (
+                      <polygon points="185,75 240,105 235,112 185,82" fill="#1A1C24" stroke="#505668" strokeWidth="1" />
+                    )}
+
+                    {/* Front Cyber Lightbar (Continuous 50,000 Lumens Blade) */}
+                    <polygon
+                      points="40,194 48,190 75,145 70,148"
+                      fill="#FFFFFF"
+                      className="filter drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
+                    />
+
+                    {/* Rear Red Monolith Blade Light */}
+                    <polygon
+                      points="360,194 365,195 315,138 312,135"
+                      fill="#E82127"
+                      className="filter drop-shadow-[0_0_12px_rgba(232,33,39,0.9)]"
+                    />
+                  </svg>
+                </div>
+
+                {/* Cybertruck Specific Off-Road & Vault Controls */}
+                <div className="w-full mt-4 grid grid-cols-3 gap-2 text-xs font-mono">
+                  <button
+                    onClick={toggleVault}
+                    className="p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-center"
+                  >
+                    <span className="text-[10px] text-white/40 block">VAULT COVER</span>
+                    <span className="font-bold text-[#E6A020] uppercase">{vaultCover}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      playTeslaHaptic("locker");
+                      setRearLocker(!rearLocker);
+                      setHudAlert(rearLocker ? "REAR LOCKER DISENGAGED" : "REAR E-LOCKER ENGAGED");
+                      setTimeout(() => setHudAlert(null), 3000);
+                    }}
+                    className={`p-3 rounded-xl border text-center transition-all ${
+                      rearLocker
+                        ? "border-[#E6A020] bg-[#E6A020]/20 text-[#E6A020]"
+                        : "border-white/10 bg-white/5 text-white/60"
+                    }`}
+                  >
+                    <span className="text-[10px] text-white/40 block">REAR LOCKER</span>
+                    <span className="font-bold uppercase">{rearLocker ? "LOCKED" : "OPEN"}</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      playTeslaHaptic("locker");
+                      setWadeMode(!wadeMode);
+                      setHudAlert(wadeMode ? "WADE MODE DEACTIVATED" : "WADE MODE: PACK PRESSURIZED");
+                      setTimeout(() => setHudAlert(null), 3000);
+                    }}
+                    className={`p-3 rounded-xl border text-center transition-all ${
+                      wadeMode
+                        ? "border-blue-400 bg-blue-400/20 text-blue-400"
+                        : "border-white/10 bg-white/5 text-white/60"
+                    }`}
+                  >
+                    <span className="text-[10px] text-white/40 block">WADE MODE</span>
+                    <span className="font-bold uppercase">{wadeMode ? "ACTIVE" : "OFF"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* =============================================================== */}
+            {/* MODEL B: ROADSTER PROCEDURAL HYPERSONIC AERO TWIN                */}
+            {/* =============================================================== */}
+            {activeModel === "roadster" && (
+              <div className="relative z-10 my-auto flex flex-col items-center justify-center">
+                
+                {/* Pure Procedural Aerodynamic Roadster Vector with Active Thrusters */}
+                <div className="relative w-80 sm:w-96 aspect-[16/10] flex items-center justify-center">
+                  <svg
+                    viewBox="0 0 400 240"
+                    className="w-full h-full filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
+                  >
+                    <defs>
+                      <linearGradient id="roadsterPearl" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#FFFFFF" />
+                        <stop offset="50%" stopColor="#E2E4EC" />
+                        <stop offset="100%" stopColor="#9CA2B2" />
+                      </linearGradient>
+                      <linearGradient id="thrusterFire" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#FF2E36" stopOpacity="0.9" />
+                        <stop offset="100%" stopColor="#FF9B26" stopOpacity="0.1" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Ground Shadow */}
+                    <ellipse cx="200" cy="215" rx="150" ry="12" fill="#000000" opacity="0.8" />
+
+                    {/* Active Cold-Gas Jet Spray Vectors */}
+                    {thrusterFiring && (
+                      <g className="animate-pulse">
+                        <polygon points="340,175 395,160 395,190" fill="url(#thrusterFire)" />
+                        <polygon points="340,150 390,130 390,165" fill="url(#thrusterFire)" />
+                      </g>
+                    )}
+
+                    {/* Sleek Aerodynamic Composite Body */}
+                    <path
+                      d="M 50,185 C 65,145 110,120 180,95 C 240,75 285,110 345,155 C 355,185 330,205 295,205 C 265,205 130,205 60,205 Z"
+                      fill="url(#roadsterPearl)"
+                      stroke="#FFFFFF"
+                      strokeWidth="2"
+                    />
+
+                    {/* Glass Cockpit Canopy & Headrest */}
+                    <path
+                      d="M 140,130 C 170,95 210,85 250,110 C 240,135 155,140 140,130 Z"
+                      fill="#0C0D12"
+                      stroke="#E82127"
+                      strokeWidth="1.5"
+                    />
+
+                    {/* Active Deployable Carbon Aero Wing */}
+                    <g transform={`rotate(${-aeroWingAngle}, 330, 140)`}>
+                      <rect x="310" y="132" width="45" height="6" rx="2" fill="#18181A" stroke="#E82127" strokeWidth="1" />
+                    </g>
+
+                    {/* Front Signature Matrix Beam */}
+                    <line x1="50" y1="185" x2="65" y2="175" stroke="#FFFFFF" strokeWidth="4" className="filter drop-shadow-[0_0_8px_white]" />
+                  </svg>
+                </div>
+
+                {/* Roadster Specific Rocket Mode & Thruster Controls */}
+                <div className="w-full mt-4 grid grid-cols-3 gap-2 text-xs font-mono">
+                  <button
+                    onClick={triggerColdGasPurge}
+                    className="p-3 rounded-xl border border-[#E82127]/50 bg-[#E82127]/15 hover:bg-[#E82127]/30 text-center"
+                  >
+                    <span className="text-[10px] text-white/40 block">SPACEX THRUSTER</span>
+                    <span className="font-bold text-[#E82127] uppercase">PURGE 10K PSI</span>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      playTeslaHaptic("thruster");
+                      setRocketMode(!rocketMode);
+                      setAeroWingAngle(rocketMode ? 12 : 32);
+                      setHudAlert(rocketMode ? "STANDARD AERO ACTIVE" : "ROCKET LAUNCH MODE READY (1.1s)");
+                      setTimeout(() => setHudAlert(null), 3000);
+                    }}
+                    className={`p-3 rounded-xl border text-center transition-all ${
+                      rocketMode
+                        ? "border-[#E82127] bg-[#E82127] text-white shadow-[0_0_15px_rgba(232,33,39,0.8)]"
+                        : "border-white/10 bg-white/5 text-white/60"
+                    }`}
+                  >
+                    <span className="text-[10px] text-white/40 block">ROCKET MODE</span>
+                    <span className="font-bold uppercase">{rocketMode ? "ARMED 1.1S" : "READY"}</span>
+                  </button>
+
+                  <div className="p-3 rounded-xl border border-white/10 bg-white/5 text-center">
+                    <span className="text-[10px] text-white/40 block">G-FORCE LATERAL</span>
+                    <span className="font-bold text-emerald-400">+{gForceLateral} G</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Steer & Height Bar */}
+            <div className="relative z-10 flex items-center justify-between text-[11px] font-mono bg-black/70 p-3 rounded-2xl border border-white/10">
+              <div>
+                <span className="text-white/40">AIR SUSPENSION: </span>
+                <span className="font-bold text-white uppercase">{activeModel === "cybertruck" ? cyberHeight : "TRACK LOW (100mm)"}</span>
+              </div>
+              <div>
+                <span className="text-white/40">STEER-BY-WIRE: </span>
+                <span className="font-bold text-emerald-400">170:1 VARIABLE RATIO</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* RIGHT 6 COLUMNS: TESLA LIVE SATELLITE MAP & IN-CAR APPS          */}
+          {/* ================================================================= */}
+          <div className="lg:col-span-6 relative bg-[#090A0E] flex flex-col justify-between overflow-hidden">
+            
+            {/* Topographic Tactical Vector Map */}
+            <div className="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(#2c3245_1px,transparent_1px)] [background-size:22px_22px]">
+              <div className="absolute inset-0 bg-gradient-to-tr from-[#090A0E] via-transparent to-[#10141D]" />
+            </div>
+
+            {/* Top Navigation Turn Card */}
+            <div className="relative z-10 m-6 p-4 rounded-2xl border border-white/15 bg-black/85 backdrop-blur-xl max-w-sm shadow-2xl space-y-2">
+              <div className="flex items-start gap-3">
+                <div
+                  className={`h-9 w-9 rounded-xl text-white grid place-items-center font-bold ${
+                    activeModel === "cybertruck" ? "bg-[#E6A020] text-black" : "bg-[#3E6AE1]"
+                  }`}
+                >
+                  <ArrowUp className="h-5 w-5" />
+                </div>
+                <div className="flex-1 font-mono">
+                  <div className="text-sm font-bold text-white font-sans">
+                    In 1.4 miles, merge onto Gigafactory Way
+                  </div>
+                  <div className="text-xs text-white/50">
+                    Navigating to Tesla Austin Gigasite Delivery Hub
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs font-mono">
+                <span className="text-emerald-400 font-bold">14 min · 11.2 mi</span>
+                <span className="text-white/50">Arrive with {activeModel === "cybertruck" ? "84%" : "92%"}</span>
+              </div>
+            </div>
+
+            {/* Active Modal / App Drawer Overlay over Map */}
+            {activeApp !== "none" && (
+              <div className="relative z-20 mx-6 mb-6 rounded-3xl border border-white/20 bg-[#121318]/95 p-6 backdrop-blur-2xl shadow-2xl animate-fadeIn space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="text-sm font-bold font-sans uppercase tracking-wider text-white flex items-center gap-2">
+                    {activeApp === "controls" && <><Sliders className="h-4 w-4 text-[#E82127]" /> Chassis & Vehicle Controls</>}
+                    {activeApp === "upgrades" && <><ShoppingCart className="h-4 w-4 text-[#3E6AE1]" /> Tesla In-Car Upgrades Store</>}
+                    {activeApp === "charging" && <><Zap className="h-4 w-4 text-emerald-400" /> Supercharging & Battery Ring</>}
+                    {activeApp === "music" && <><Music className="h-4 w-4 text-purple-400" /> Media & Streaming</>}
+                  </div>
+                  <button
+                    onClick={() => setActiveApp("none")}
+                    className="text-white/60 hover:text-white font-mono text-xs px-2 py-1 rounded bg-white/5"
+                  >
+                    ✕ Close
+                  </button>
+                </div>
+
+                {/* APP 1: UPGRADES STORE (PURCHASABLE IN REAL TIME) */}
+                {activeApp === "upgrades" && (
+                  <div className="space-y-3 font-mono text-xs max-h-72 overflow-y-auto pr-2 scrollbar-none">
+                    <div className="text-white/60 mb-1">
+                      Available software & hardware calibrations for {activeModel.toUpperCase()}:
+                    </div>
+
+                    {[
+                      {
+                        title: "SpaceX Cold-Gas Thruster Package",
+                        badge: "0-60 IN 1.1S",
+                        price: 25000,
+                        specs: "1.9s → 1.1s Rocket Launch Mode",
+                        installed: activeModel === "roadster" && rocketMode,
+                      },
+                      {
+                        title: "Full Self-Driving (Supervised) HW5",
+                        badge: "AUTOPILOT V13",
+                        price: 8000,
+                        specs: "Level 2 → Supervised FSD",
+                        installed: fsdActive,
+                      },
+                      {
+                        title: "Bed-Mounted 50 kWh Range Extender",
+                        badge: "470+ MI RANGE",
+                        price: 16000,
+                        specs: "340 mi → 470 mi Total Range",
+                        installed: false,
+                      },
+                      {
+                        title: "Carbon-Ceramic Matrix Track Brakes",
+                        badge: "ZERO FADE",
+                        price: 8500,
+                        specs: "285 ft → 215 ft 100-0 MPH",
+                        installed: false,
+                      },
+                    ].map((upg, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-3.5 rounded-2xl border border-white/10 bg-white/5"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-sm font-sans">{upg.title}</span>
+                            <span className="text-[10px] text-[#E82127] font-bold">{upg.badge}</span>
+                          </div>
+                          <div className="text-white/50 text-[11px] mt-0.5">{upg.specs}</div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-white">${upg.price.toLocaleString()}</span>
+                          {upg.installed ? (
+                            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg font-bold">
+                              Installed
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                playTeslaHaptic("fsd");
+                                setHudAlert(`✓ ${upg.title} Installed on VIN!`);
+                                setTimeout(() => setHudAlert(null), 3500);
+                              }}
+                              className="rounded-lg bg-[#3E6AE1] hover:bg-[#3457B2] px-3.5 py-1.5 text-xs font-bold text-white transition-colors"
+                            >
+                              Buy Upgrade
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* APP 2: QUICK CHASSIS CONTROLS */}
+                {activeApp === "controls" && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+                    <button
+                      onClick={() => setIsLocked(!isLocked)}
+                      className="p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left space-y-1"
+                    >
+                      <Lock className="h-5 w-5 text-white mb-2" />
+                      <div className="font-bold text-white">Chassis Lock</div>
+                      <div className="text-white/40">{isLocked ? "Locked" : "Unlocked"}</div>
+                    </button>
+
+                    <button
+                      onClick={() => setHeadlights(headlights === "auto" ? "high" : "auto")}
+                      className="p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left space-y-1"
+                    >
+                      <Sparkles className="h-5 w-5 text-yellow-400 mb-2" />
+                      <div className="font-bold text-white">Matrix Lights</div>
+                      <div className="text-white/40 uppercase">{headlights}</div>
+                    </button>
+
+                    {activeModel === "cybertruck" ? (
+                      <button
+                        onClick={toggleVault}
+                        className="p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left space-y-1"
+                      >
+                        <ShieldCheck className="h-5 w-5 text-[#E6A020] mb-2" />
+                        <div className="font-bold text-white">Vault Cover</div>
+                        <div className="text-white/40 uppercase">{vaultCover}</div>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={triggerColdGasPurge}
+                        className="p-4 rounded-2xl border border-[#E82127]/40 bg-[#E82127]/10 hover:bg-[#E82127]/20 text-left space-y-1"
+                      >
+                        <Flame className="h-5 w-5 text-[#E82127] mb-2" />
+                        <div className="font-bold text-white">Thruster Purge</div>
+                        <div className="text-white/40">10,000 PSI</div>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        playTeslaHaptic("gear");
+                        setHudAlert("Mirror Auto-Tilt & Folding Calibrated");
+                        setTimeout(() => setHudAlert(null), 3000);
+                      }}
+                      className="p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 text-left space-y-1"
+                    >
+                      <Sliders className="h-5 w-5 text-blue-400 mb-2" />
+                      <div className="font-bold text-white">Mirrors & Yoke</div>
+                      <div className="text-white/40">Calibrated</div>
+                    </button>
+                  </div>
+                )}
+
+                {/* APP 3: CHARGING */}
+                {activeApp === "charging" && (
+                  <div className="space-y-4 font-mono text-xs">
+                    <div className="flex justify-between items-center border-b border-white/10 pb-2">
+                      <div>
+                        <div className="text-base font-bold text-white">
+                          Battery: {activeModel === "cybertruck" ? "88%" : "98%"}
+                        </div>
+                        <div className="text-white/50">
+                          {activeModel === "cybertruck" ? "340 mi range" : "620 mi range"}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-emerald-400 font-bold">V4 Supercharging (350 kW)</span>
+                        <div className="text-[10px] text-white/40">+240 miles in 15 min</div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-white/60">Daily Charge Limit</span>
+                        <span className="text-white font-bold">90%</span>
+                      </div>
+                      <input type="range" min="50" max="100" defaultValue="90" className="w-full accent-white" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* =================================================================== */}
+        {/* BOTTOM CYBER DOCK BAR                                               */}
+        {/* =================================================================== */}
+        <div
+          className={`relative z-20 h-16 border-t px-6 flex items-center justify-between text-xs font-mono transition-colors duration-500 ${
+            activeModel === "cybertruck"
+              ? "border-[#2A2D38] bg-[#0C0E14] text-[#D8DAE2]"
+              : "border-white/10 bg-black text-white"
+          }`}
+        >
+          {/* Left: Quick Car Controls & Driver Climate */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveApp(activeApp === "controls" ? "none" : "controls");
+              }}
+              className={`p-2.5 rounded-2xl border transition-all ${
+                activeApp === "controls"
+                  ? "border-white bg-white text-black"
+                  : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+              title="Car Controls"
+            >
+              <Car className="h-5 w-5" />
+            </button>
+
+            {/* Driver Temp */}
+            <div className="flex items-center gap-1.5 rounded-2xl bg-white/5 border border-white/10 px-3 py-1.5">
+              <button onClick={() => setDriverTemp(driverTemp - 1)} className="text-white/40 hover:text-white">
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="font-bold text-sm text-white">{driverTemp}°</span>
+              <button onClick={() => setDriverTemp(driverTemp + 1)} className="text-white/40 hover:text-white">
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Center Apps: Upgrades Shop, Charging, Music */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveApp(activeApp === "upgrades" ? "none" : "upgrades");
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all ${
+                activeApp === "upgrades"
+                  ? "border-[#3E6AE1] bg-[#3E6AE1] text-white shadow-[0_0_15px_rgba(62,106,225,0.8)]"
+                  : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              <ShoppingCart className="h-4 w-4 text-[#E82127]" />
+              <span className="font-bold">Upgrades Store</span>
+            </button>
+
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveApp(activeApp === "charging" ? "none" : "charging");
+              }}
+              className={`p-2.5 rounded-2xl border transition-all ${
+                activeApp === "charging"
+                  ? "border-emerald-400 bg-emerald-400 text-black"
+                  : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              <Zap className="h-4 w-4" />
+            </button>
+
+            <button
+              onClick={() => {
+                playTeslaHaptic("click");
+                setActiveApp(activeApp === "music" ? "none" : "music");
+              }}
+              className={`p-2.5 rounded-2xl border transition-all ${
+                activeApp === "music"
+                  ? "border-white bg-white text-black"
+                  : "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+              }`}
+            >
+              <Music className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Right: Passenger Temp & Volume */}
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 rounded-2xl bg-white/5 border border-white/10 px-3 py-1.5">
+              <button onClick={() => setPassengerTemp(passengerTemp - 1)} className="text-white/40 hover:text-white">
+                <Minus className="h-3.5 w-3.5" />
+              </button>
+              <span className="font-bold text-sm text-white">{passengerTemp}°</span>
+              <button onClick={() => setPassengerTemp(passengerTemp + 1)} className="text-white/40 hover:text-white">
+                <Plus className="h-3.5 w-3.5" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Volume2 className="h-4 w-4 text-white/60" />
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={(e) => setVolume(parseInt(e.target.value))}
+                className="w-16 accent-white"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Return Link Under Touchscreen */}
+      <div className="mt-4 flex items-center justify-between w-full max-w-[1540px] px-4 text-xs font-mono text-white/40">
+        <Link to="/" className="hover:text-white transition-colors">
+          ← Return to X3 Flagship
+        </Link>
+        <span>Zero Static Photos · 100% Procedural Digital Twin & Vector HUD</span>
+      </div>
     </div>
   );
 }
