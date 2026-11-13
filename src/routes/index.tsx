@@ -103,7 +103,7 @@ function LandingPage() {
                 title: "Roadster",
                 tagline: "Pure Electric Velocity",
                 desc: "The quickest electric supercar in existence. Engineered with carbon-composite architecture, tri-motor all-wheel drive, and active aerodynamic downforce.",
-                image: "/assets/roadster/roadster-studio-white.jpg",
+                image: "/assets/roadster/roadster-card-official.avif",
                 specs: [
                   { k: "1.9 sec", l: "0-60 mph" },
                   { k: "+250 mph", l: "Top Speed" },
@@ -211,12 +211,12 @@ function LandingPage() {
                           <ArrowRight className="h-3.5 w-3.5" />
                         </button>
                         {prod.id === "roadster" ? (
-                          <button
-                            onClick={() => openConfigurator("roadster")}
+                          <Link
+                            to="/roadster"
                             className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-6 py-3 text-xs font-semibold text-white hover:bg-white/20 backdrop-blur-md transition-colors"
                           >
-                            Review
-                          </button>
+                            Learn More
+                          </Link>
                         ) : (
                           <>
                             {prod.videoId && (

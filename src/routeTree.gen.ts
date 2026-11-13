@@ -14,6 +14,7 @@ import { Route as TechnologiesRouteImport } from './routes/technologies'
 import { Route as SustainabilityRouteImport } from './routes/sustainability'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RoadsterRouteImport } from './routes/roadster'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PortalRouteImport } from './routes/portal'
@@ -115,6 +116,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadsterRoute = RoadsterRouteImport.update({
+  id: '/roadster',
+  path: '/roadster',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -552,6 +558,7 @@ export interface FileRoutesByFullPath {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roadster': typeof RoadsterRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -635,6 +642,7 @@ export interface FileRoutesByTo {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roadster': typeof RoadsterRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -720,6 +728,7 @@ export interface FileRoutesById {
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/roadster': typeof RoadsterRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -805,6 +814,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reset-password'
+    | '/roadster'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -888,6 +898,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reset-password'
+    | '/roadster'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -972,6 +983,7 @@ export interface FileRouteTypes {
     | '/portal'
     | '/register'
     | '/reset-password'
+    | '/roadster'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -1057,6 +1069,7 @@ export interface RootRouteChildren {
   PortalRoute: typeof PortalRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RoadsterRoute: typeof RoadsterRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SustainabilityRoute: typeof SustainabilityRoute
@@ -1113,6 +1126,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadster': {
+      id: '/roadster'
+      path: '/roadster'
+      fullPath: '/roadster'
+      preLoaderRoute: typeof RoadsterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -1779,6 +1799,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalRoute: PortalRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RoadsterRoute: RoadsterRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SustainabilityRoute: SustainabilityRoute,

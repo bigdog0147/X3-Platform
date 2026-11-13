@@ -60,6 +60,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { TeslaVehicle3DCanvas } from "@/components/tesla-vehicle-3d-canvas";
 import { X3Logo3D } from "@/components/x3-logo-3d";
 
 export const Route = createFileRoute("/portal")({
@@ -568,80 +569,40 @@ export function CustomerPortalPage() {
             </div>
 
             {/* =============================================================== */}
-            {/* MODEL A: CYBERTRUCK PROCEDURAL 3D WIREFRAME TWIN                */}
+            {/* REAL THREE.JS WEBGL INTERACTIVE 3D VEHICLE DIGITAL TWIN         */}
             {/* =============================================================== */}
-            {activeModel === "cybertruck" && (
-              <div className="relative z-10 my-auto flex flex-col items-center justify-center">
-                
-                {/* Pure Procedural Cyber Monolith SVG (Zero Static Photos!) */}
-                <div className="relative w-80 sm:w-96 aspect-[16/10] flex items-center justify-center">
-                  <svg
-                    viewBox="0 0 400 240"
-                    className="w-full h-full filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
-                  >
-                    <defs>
-                      <linearGradient id="cyberSteel" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#A8ABB5" />
-                        <stop offset="50%" stopColor="#7E828E" />
-                        <stop offset="100%" stopColor="#555864" />
-                      </linearGradient>
-                      <linearGradient id="armorGlass" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#1E2330" stopOpacity="0.9" />
-                        <stop offset="100%" stopColor="#0E121A" stopOpacity="0.95" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Ground Shadow */}
-                    <ellipse cx="200" cy="220" rx="160" ry="16" fill="#000000" opacity="0.8" />
-
-                    {/* 4 Wheels with Steer Angle */}
-                    <g transform={`rotate(${steerAngle}, 80, 205)`}>
-                      <rect x="65" y="185" width="30" height="40" rx="8" fill="#18181A" stroke="#444855" strokeWidth="2" />
-                    </g>
-                    <g transform={`rotate(${steerAngle}, 320, 205)`}>
-                      <rect x="305" y="185" width="30" height="40" rx="8" fill="#18181A" stroke="#444855" strokeWidth="2" />
-                    </g>
-
-                    {/* Angular Stainless Steel Exoskeleton */}
-                    <polygon
-                      points="40,195 80,140 180,60 310,135 365,195 340,215 65,215"
-                      fill="url(#cyberSteel)"
-                      stroke="#C5C8D4"
-                      strokeWidth="2.5"
-                    />
-
-                    {/* Armor Glass Canopy */}
-                    <polygon
-                      points="110,135 180,70 270,135"
-                      fill="url(#armorGlass)"
-                      stroke="#586074"
-                      strokeWidth="2"
-                    />
-
-                    {/* Motorized Vault Tonneau Slats */}
-                    {vaultCover === "closed" ? (
-                      <polygon points="185,75 305,135 295,142 185,82" fill="#2E323E" stroke="#505668" strokeWidth="1" />
-                    ) : (
-                      <polygon points="185,75 240,105 235,112 185,82" fill="#1A1C24" stroke="#505668" strokeWidth="1" />
-                    )}
-
-                    {/* Front Cyber Lightbar (Continuous 50,000 Lumens Blade) */}
-                    <polygon
-                      points="40,194 48,190 75,145 70,148"
-                      fill="#FFFFFF"
-                      className="filter drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-                    />
-
-                    {/* Rear Red Monolith Blade Light */}
-                    <polygon
-                      points="360,194 365,195 315,138 312,135"
-                      fill="#E82127"
-                      className="filter drop-shadow-[0_0_12px_rgba(232,33,39,0.9)]"
-                    />
-                  </svg>
+            <div className="relative z-10 my-auto w-full flex flex-col items-center justify-center">
+              {/* 3D Model Header Identification */}
+              <div className="w-full flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-0.5 rounded font-mono text-[10px] font-bold ${
+                    activeModel === "cybertruck" ? "bg-[#E6A020] text-black" : "bg-[#E82127] text-white"
+                  }`}>
+                    {activeModel === "cybertruck" ? "TESLA CYBERTRUCK" : "TESLA ROADSTER"}
+                  </span>
+                  <span className="text-white font-bold font-sans text-sm">
+                    {activeModel === "cybertruck" ? "Cyberbeast Tri-Motor" : "Founders Series SpaceX Package"}
+                  </span>
                 </div>
+                <span className="text-[10px] font-mono text-emerald-400">
+                  REAL-TIME 3D ROTATION
+                </span>
+              </div>
 
-                {/* Cybertruck Specific Off-Road & Vault Controls */}
+              {/* Real 3D Interactive WebGL Canvas */}
+              <div className="relative w-full aspect-[16/10] max-h-[380px] rounded-2xl overflow-hidden border border-white/10 bg-black/60 shadow-2xl">
+                <TeslaVehicle3DCanvas
+                  model={activeModel}
+                  isDriving={isDriving}
+                  speed={speed}
+                  thrusterFiring={thrusterFiring}
+                  headlightsOn={headlights !== "off"}
+                  vaultOpen={vaultCover === "open"}
+                />
+              </div>
+
+              {/* Model-Specific Quick Dynamic Telemetry Bar */}
+              {activeModel === "cybertruck" ? (
                 <div className="w-full mt-4 grid grid-cols-3 gap-2 text-xs font-mono">
                   <button
                     onClick={toggleVault}
@@ -685,71 +646,7 @@ export function CustomerPortalPage() {
                     <span className="font-bold uppercase">{wadeMode ? "ACTIVE" : "OFF"}</span>
                   </button>
                 </div>
-              </div>
-            )}
-
-            {/* =============================================================== */}
-            {/* MODEL B: ROADSTER PROCEDURAL HYPERSONIC AERO TWIN                */}
-            {/* =============================================================== */}
-            {activeModel === "roadster" && (
-              <div className="relative z-10 my-auto flex flex-col items-center justify-center">
-                
-                {/* Pure Procedural Aerodynamic Roadster Vector with Active Thrusters */}
-                <div className="relative w-80 sm:w-96 aspect-[16/10] flex items-center justify-center">
-                  <svg
-                    viewBox="0 0 400 240"
-                    className="w-full h-full filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
-                  >
-                    <defs>
-                      <linearGradient id="roadsterPearl" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#FFFFFF" />
-                        <stop offset="50%" stopColor="#E2E4EC" />
-                        <stop offset="100%" stopColor="#9CA2B2" />
-                      </linearGradient>
-                      <linearGradient id="thrusterFire" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#FF2E36" stopOpacity="0.9" />
-                        <stop offset="100%" stopColor="#FF9B26" stopOpacity="0.1" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Ground Shadow */}
-                    <ellipse cx="200" cy="215" rx="150" ry="12" fill="#000000" opacity="0.8" />
-
-                    {/* Active Cold-Gas Jet Spray Vectors */}
-                    {thrusterFiring && (
-                      <g className="animate-pulse">
-                        <polygon points="340,175 395,160 395,190" fill="url(#thrusterFire)" />
-                        <polygon points="340,150 390,130 390,165" fill="url(#thrusterFire)" />
-                      </g>
-                    )}
-
-                    {/* Sleek Aerodynamic Composite Body */}
-                    <path
-                      d="M 50,185 C 65,145 110,120 180,95 C 240,75 285,110 345,155 C 355,185 330,205 295,205 C 265,205 130,205 60,205 Z"
-                      fill="url(#roadsterPearl)"
-                      stroke="#FFFFFF"
-                      strokeWidth="2"
-                    />
-
-                    {/* Glass Cockpit Canopy & Headrest */}
-                    <path
-                      d="M 140,130 C 170,95 210,85 250,110 C 240,135 155,140 140,130 Z"
-                      fill="#0C0D12"
-                      stroke="#E82127"
-                      strokeWidth="1.5"
-                    />
-
-                    {/* Active Deployable Carbon Aero Wing */}
-                    <g transform={`rotate(${-aeroWingAngle}, 330, 140)`}>
-                      <rect x="310" y="132" width="45" height="6" rx="2" fill="#18181A" stroke="#E82127" strokeWidth="1" />
-                    </g>
-
-                    {/* Front Signature Matrix Beam */}
-                    <line x1="50" y1="185" x2="65" y2="175" stroke="#FFFFFF" strokeWidth="4" className="filter drop-shadow-[0_0_8px_white]" />
-                  </svg>
-                </div>
-
-                {/* Roadster Specific Rocket Mode & Thruster Controls */}
+              ) : (
                 <div className="w-full mt-4 grid grid-cols-3 gap-2 text-xs font-mono">
                   <button
                     onClick={triggerColdGasPurge}
@@ -782,8 +679,8 @@ export function CustomerPortalPage() {
                     <span className="font-bold text-emerald-400">+{gForceLateral} G</span>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Bottom Steer & Height Bar */}
             <div className="relative z-10 flex items-center justify-between text-[11px] font-mono bg-black/70 p-3 rounded-2xl border border-white/10">
