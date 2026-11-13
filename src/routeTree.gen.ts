@@ -14,14 +14,19 @@ import { Route as TechnologiesRouteImport } from './routes/technologies'
 import { Route as SustainabilityRouteImport } from './routes/sustainability'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RoboticsRouteImport } from './routes/robotics'
 import { Route as RoadsterRouteImport } from './routes/roadster'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as PortalRouteImport } from './routes/portal'
+import { Route as ModelYRouteImport } from './routes/model-y'
+import { Route as Model3RouteImport } from './routes/model-3'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as InvoiceRouteImport } from './routes/invoice'
 import { Route as InvestorsRouteImport } from './routes/investors'
 import { Route as InnovationRouteImport } from './routes/innovation'
 import { Route as InfrastructureRouteImport } from './routes/infrastructure'
+import { Route as InflowRouteImport } from './routes/inflow'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as CybertruckRouteImport } from './routes/cybertruck'
@@ -119,6 +124,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RoboticsRoute = RoboticsRouteImport.update({
+  id: '/robotics',
+  path: '/robotics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RoadsterRoute = RoadsterRouteImport.update({
   id: '/roadster',
   path: '/roadster',
@@ -139,9 +149,24 @@ const PortalRoute = PortalRouteImport.update({
   path: '/portal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModelYRoute = ModelYRouteImport.update({
+  id: '/model-y',
+  path: '/model-y',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Model3Route = Model3RouteImport.update({
+  id: '/model-3',
+  path: '/model-3',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoiceRoute = InvoiceRouteImport.update({
+  id: '/invoice',
+  path: '/invoice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InvestorsRoute = InvestorsRouteImport.update({
@@ -157,6 +182,11 @@ const InnovationRoute = InnovationRouteImport.update({
 const InfrastructureRoute = InfrastructureRouteImport.update({
   id: '/infrastructure',
   path: '/infrastructure',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InflowRoute = InflowRouteImport.update({
+  id: '/inflow',
+  path: '/inflow',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndustriesRoute = IndustriesRouteImport.update({
@@ -558,14 +588,19 @@ export interface FileRoutesByFullPath {
   '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
+  '/inflow': typeof InflowRoute
   '/infrastructure': typeof InfrastructureRoute
   '/innovation': typeof InnovationRoute
   '/investors': typeof InvestorsRoute
+  '/invoice': typeof InvoiceRoute
   '/login': typeof LoginRoute
+  '/model-3': typeof Model3Route
+  '/model-y': typeof ModelYRoute
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadster': typeof RoadsterRoute
+  '/robotics': typeof RoboticsRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -643,14 +678,19 @@ export interface FileRoutesByTo {
   '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
+  '/inflow': typeof InflowRoute
   '/infrastructure': typeof InfrastructureRoute
   '/innovation': typeof InnovationRoute
   '/investors': typeof InvestorsRoute
+  '/invoice': typeof InvoiceRoute
   '/login': typeof LoginRoute
+  '/model-3': typeof Model3Route
+  '/model-y': typeof ModelYRoute
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadster': typeof RoadsterRoute
+  '/robotics': typeof RoboticsRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -730,14 +770,19 @@ export interface FileRoutesById {
   '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
+  '/inflow': typeof InflowRoute
   '/infrastructure': typeof InfrastructureRoute
   '/innovation': typeof InnovationRoute
   '/investors': typeof InvestorsRoute
+  '/invoice': typeof InvoiceRoute
   '/login': typeof LoginRoute
+  '/model-3': typeof Model3Route
+  '/model-y': typeof ModelYRoute
   '/portal': typeof PortalRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/roadster': typeof RoadsterRoute
+  '/robotics': typeof RoboticsRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sustainability': typeof SustainabilityRoute
@@ -817,14 +862,19 @@ export interface FileRouteTypes {
     | '/cybertruck'
     | '/forgot-password'
     | '/industries'
+    | '/inflow'
     | '/infrastructure'
     | '/innovation'
     | '/investors'
+    | '/invoice'
     | '/login'
+    | '/model-3'
+    | '/model-y'
     | '/portal'
     | '/register'
     | '/reset-password'
     | '/roadster'
+    | '/robotics'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -902,14 +952,19 @@ export interface FileRouteTypes {
     | '/cybertruck'
     | '/forgot-password'
     | '/industries'
+    | '/inflow'
     | '/infrastructure'
     | '/innovation'
     | '/investors'
+    | '/invoice'
     | '/login'
+    | '/model-3'
+    | '/model-y'
     | '/portal'
     | '/register'
     | '/reset-password'
     | '/roadster'
+    | '/robotics'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -988,14 +1043,19 @@ export interface FileRouteTypes {
     | '/cybertruck'
     | '/forgot-password'
     | '/industries'
+    | '/inflow'
     | '/infrastructure'
     | '/innovation'
     | '/investors'
+    | '/invoice'
     | '/login'
+    | '/model-3'
+    | '/model-y'
     | '/portal'
     | '/register'
     | '/reset-password'
     | '/roadster'
+    | '/robotics'
     | '/search'
     | '/sitemap.xml'
     | '/sustainability'
@@ -1075,14 +1135,19 @@ export interface RootRouteChildren {
   CybertruckRoute: typeof CybertruckRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IndustriesRoute: typeof IndustriesRoute
+  InflowRoute: typeof InflowRoute
   InfrastructureRoute: typeof InfrastructureRoute
   InnovationRoute: typeof InnovationRoute
   InvestorsRoute: typeof InvestorsRoute
+  InvoiceRoute: typeof InvoiceRoute
   LoginRoute: typeof LoginRoute
+  Model3Route: typeof Model3Route
+  ModelYRoute: typeof ModelYRoute
   PortalRoute: typeof PortalRoute
   RegisterRoute: typeof RegisterRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RoadsterRoute: typeof RoadsterRoute
+  RoboticsRoute: typeof RoboticsRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SustainabilityRoute: typeof SustainabilityRoute
@@ -1141,6 +1206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robotics': {
+      id: '/robotics'
+      path: '/robotics'
+      fullPath: '/robotics'
+      preLoaderRoute: typeof RoboticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/roadster': {
       id: '/roadster'
       path: '/roadster'
@@ -1169,11 +1241,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/model-y': {
+      id: '/model-y'
+      path: '/model-y'
+      fullPath: '/model-y'
+      preLoaderRoute: typeof ModelYRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/model-3': {
+      id: '/model-3'
+      path: '/model-3'
+      fullPath: '/model-3'
+      preLoaderRoute: typeof Model3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoice': {
+      id: '/invoice'
+      path: '/invoice'
+      fullPath: '/invoice'
+      preLoaderRoute: typeof InvoiceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/investors': {
@@ -1195,6 +1288,13 @@ declare module '@tanstack/react-router' {
       path: '/infrastructure'
       fullPath: '/infrastructure'
       preLoaderRoute: typeof InfrastructureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inflow': {
+      id: '/inflow'
+      path: '/inflow'
+      fullPath: '/inflow'
+      preLoaderRoute: typeof InflowRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/industries': {
@@ -1813,14 +1913,19 @@ const rootRouteChildren: RootRouteChildren = {
   CybertruckRoute: CybertruckRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IndustriesRoute: IndustriesRoute,
+  InflowRoute: InflowRoute,
   InfrastructureRoute: InfrastructureRoute,
   InnovationRoute: InnovationRoute,
   InvestorsRoute: InvestorsRoute,
+  InvoiceRoute: InvoiceRoute,
   LoginRoute: LoginRoute,
+  Model3Route: Model3Route,
+  ModelYRoute: ModelYRoute,
   PortalRoute: PortalRoute,
   RegisterRoute: RegisterRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RoadsterRoute: RoadsterRoute,
+  RoboticsRoute: RoboticsRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SustainabilityRoute: SustainabilityRoute,

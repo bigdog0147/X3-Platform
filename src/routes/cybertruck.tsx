@@ -7,8 +7,6 @@ import {
   Compass,
   Wind,
   Layers,
-  ChevronLeft,
-  ChevronRight,
   Menu,
   X,
   ArrowRight,
@@ -19,14 +17,16 @@ import {
   CreditCard,
   Truck,
   Flame,
+  Check,
 } from "lucide-react";
-import { TeslaVehicle3DCanvas } from "@/components/tesla-vehicle-3d-canvas";
+import { TeslaConfiguratorModal } from "@/components/tesla-configurator-modal";
+import { SiteFooter } from "@/components/site-footer";
 
 export const Route = createFileRoute("/cybertruck")({
   component: OfficialCybertruckPage,
   head: () => ({
     meta: [
-      { title: "Cybertruck — Built for Any Planet | X3" },
+      { title: "Cybertruck | Built for Any Planet | X3" },
       {
         name: "description",
         content:
@@ -75,314 +75,171 @@ const CYBER_FEATURES: CyberFeature[] = [
   },
 ];
 
+const STUDIO_ANGLES = [
+  {
+    id: "front",
+    label: "Exterior Exoskeleton",
+    image: "/assets/cybertruck/cybertruck-hero.avif",
+    desc: "Laser-cut 30X cold-rolled stainless steel shell with shatter-resistant armor glass canopy.",
+  },
+  {
+    id: "side",
+    label: "340-Mile AWD Profile",
+    image: "/assets/vehicles/model-y.avif",
+    desc: "Monolithic geometric body designed to eliminate panel gaps and maximize aerodynamic efficiency.",
+  },
+  {
+    id: "bed",
+    label: "Motorized Vault & Bed",
+    image: "/assets/roadster/official-gallery/5-front-beam-cinematic.jpg",
+    desc: "6' x 4' composite bed with flush motorized tonneau cover capable of supporting 300 lbs.",
+  },
+];
+
 function OfficialCybertruckPage() {
-  const [viewMode, setViewMode] = useState<"showcase" | "configurator">("showcase");
-  const [activeFeature, setActiveFeature] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [configuratorOpen, setConfiguratorOpen] = useState(false);
   const [selectedTrim, setSelectedTrim] = useState<"cyberbeast" | "awd">("cyberbeast");
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [activeAngleIndex, setActiveAngleIndex] = useState(0);
+  const [vaultCoverClosed, setVaultCoverClosed] = useState(true);
+  const [suspensionMode, setSuspensionMode] = useState<"Entry" | "Medium" | "High">("Medium");
 
-  // 3D Model interactive state
-  const [isDriving3D, setIsDriving3D] = useState(true);
-  const [vaultCoverOpen, setVaultCoverOpen] = useState(false);
-  const [cyberHeight, setCyberHeight] = useState<"Entry" | "Low" | "Medium" | "High">("Medium");
+  const activeAngle = STUDIO_ANGLES[activeAngleIndex];
 
-  const handlePayment = () => {
-    setPaymentSuccess(true);
-    setTimeout(() => setPaymentSuccess(false), 4500);
-  };
-
-  // =========================================================================
-  // VIEW MODE: 1:1 CYBERTRUCK SPLIT CONFIGURATOR
-  // =========================================================================
-  if (viewMode === "configurator") {
-    return (
-      <div className="min-h-screen bg-[#07080B] text-[#E0E2EC] font-sans antialiased flex flex-col justify-between selection:bg-[#E6A020] selection:text-black">
-        
-        {/* Header */}
-        <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-6 bg-gradient-to-b from-[#07080B] via-[#07080B]/60 to-transparent">
-          <Link to="/" className="flex items-center gap-2 group">
-            <span className="font-mono text-xl sm:text-2xl font-black tracking-[0.35em] text-white uppercase group-hover:text-[#E6A020] transition-colors">
-              X3
-            </span>
-          </Link>
-
-          <div className="flex items-center gap-6 text-xs font-mono uppercase tracking-widest">
-            <button
-              onClick={() => setViewMode("showcase")}
-              className="text-white/60 hover:text-white transition-colors"
-            >
-              ← Overview
-            </button>
-            <div className="flex items-center gap-1.5 text-white/80">
-              <Globe className="h-4 w-4 text-white/70" />
-              <span>US</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Confirmation Toast */}
-        {paymentSuccess && (
-          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl border border-[#E6A020]/60 bg-black/95 px-8 py-4 text-xs font-mono text-[#E6A020] shadow-2xl backdrop-blur-2xl flex items-center gap-3 animate-fadeIn">
-            <CheckCircle2 className="h-5 w-5 text-[#E6A020]" />
-            <div>
-              <div className="font-bold uppercase text-white">Cybertruck Reservation Placed ($250 Deposit)</div>
-              <div className="text-white/60 mt-0.5">Your production queue slot has been secured.</div>
-            </div>
-          </div>
-        )}
-
-        {/* Two-Column Split Layout */}
-        <div className="relative pt-24 pb-12 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-screen overflow-hidden">
-          
-          {/* Left Column: 3D Exoskeleton Digital Twin */}
-          <div className="lg:col-span-7 relative flex flex-col justify-center items-center p-6 lg:p-12 min-h-[480px]">
-            <div className="w-full max-w-2xl aspect-[16/10] rounded-2xl overflow-hidden border border-[#2A2D38] bg-[#0E1015] shadow-2xl relative">
-              <TeslaVehicle3DCanvas
-                model="cybertruck"
-                isDriving={isDriving3D}
-                speed={isDriving3D ? 65 : 0}
-                vaultOpen={vaultCoverOpen}
-                headlightsOn={true}
-              />
-
-              {/* In-Canvas Cyber Controls */}
-              <div className="absolute bottom-4 left-4 right-4 z-10 flex flex-wrap items-center justify-between gap-2 p-2 rounded-xl bg-black/70 border border-white/10 backdrop-blur-md text-[11px] font-mono">
-                <button
-                  onClick={() => setIsDriving3D(!isDriving3D)}
-                  className="px-3 py-1 rounded border border-white/20 text-white/80 hover:text-white"
-                >
-                  {isDriving3D ? "Pause Drive" : "Spin Orbit"}
-                </button>
-
-                <button
-                  onClick={() => setVaultCoverOpen(!vaultCoverOpen)}
-                  className={`px-3 py-1 rounded border transition-colors ${
-                    vaultCoverOpen ? "border-[#E6A020] text-[#E6A020]" : "border-white/20 text-white/80"
-                  }`}
-                >
-                  Vault: {vaultCoverOpen ? "OPEN" : "CLOSED"}
-                </button>
-
-                <div className="flex items-center gap-1">
-                  <span className="text-white/40">Air:</span>
-                  {(["Entry", "Low", "Medium", "High"] as const).map((h) => (
-                    <button
-                      key={h}
-                      onClick={() => setCyberHeight(h)}
-                      className={`px-2 py-0.5 rounded text-[10px] ${
-                        cyberHeight === h ? "bg-[#E6A020] text-black font-bold" : "text-white/60"
-                      }`}
-                    >
-                      {h}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 text-[11px] font-mono text-white/40">
-              Drag mouse to inspect 360&deg; low-poly stainless exoskeleton &middot; All-Terrain 35" tires
-            </div>
-          </div>
-
-          {/* Right Column: Configurator Options */}
-          <div className="lg:col-span-5 relative flex flex-col justify-start p-6 lg:p-12 lg:border-l lg:border-white/10 overflow-y-auto max-w-xl mx-auto w-full">
-            
-            <div className="text-center sm:text-left mb-8">
-              <div className="inline-block px-3 py-0.5 rounded bg-[#E6A020]/20 border border-[#E6A020]/40 font-mono text-[10px] font-bold text-[#E6A020] mb-2 uppercase">
-                Utility Redefined
-              </div>
-              <h1 className="font-mono font-black uppercase tracking-[0.15em] text-4xl sm:text-5xl text-white">
-                CYBERTRUCK
-              </h1>
-            </div>
-
-            {/* Cyberbeast Option */}
-            <div
-              onClick={() => setSelectedTrim("cyberbeast")}
-              className={`p-6 rounded-xl border cursor-pointer transition-all duration-300 mb-4 ${
-                selectedTrim === "cyberbeast"
-                  ? "border-[#E6A020] bg-[#14161F] shadow-[0_0_25px_rgba(230,160,32,0.15)]"
-                  : "border-white/15 bg-black/40 hover:border-white/30"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xl sm:text-2xl font-bold font-mono text-white">
-                  Cyberbeast
-                </span>
-                <span className="text-xs font-mono font-bold text-[#E6A020]">
-                  Tri-Motor AWD
-                </span>
-              </div>
-              <p className="mt-2 text-xs sm:text-sm text-[#A8ABB7] leading-relaxed font-light">
-                0-60 mph in 2.6 seconds. 845 HP, 11,000 lbs towing capacity, front and rear locking differentials.
-              </p>
-              <div className="mt-4 font-mono text-xl font-bold text-white">$99,990</div>
-            </div>
-
-            {/* All-Wheel Drive Option */}
-            <div
-              onClick={() => setSelectedTrim("awd")}
-              className={`p-6 rounded-xl border cursor-pointer transition-all duration-300 mb-8 ${
-                selectedTrim === "awd"
-                  ? "border-[#E6A020] bg-[#14161F] shadow-[0_0_25px_rgba(230,160,32,0.15)]"
-                  : "border-white/15 bg-black/40 hover:border-white/30"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xl sm:text-2xl font-bold font-mono text-white">
-                  All-Wheel Drive
-                </span>
-                <span className="text-xs font-mono font-bold text-white/60">
-                  Dual-Motor AWD
-                </span>
-              </div>
-              <p className="mt-2 text-xs sm:text-sm text-[#A8ABB7] leading-relaxed font-light">
-                0-60 mph in 4.1 seconds. 600 HP, 340 miles estimated range, 11,000 lbs towing capacity.
-              </p>
-              <div className="mt-4 font-mono text-xl font-bold text-white">$79,990</div>
-            </div>
-
-            {/* Financial Summary */}
-            <div className="space-y-4 pt-6 border-t border-white/10 text-sm font-mono">
-              <div className="flex items-baseline justify-between">
-                <div>
-                  <div className="text-base font-bold text-white">Due Today</div>
-                  <div className="text-[11px] text-white/50">Fully Refundable Deposit</div>
-                </div>
-                <div className="text-2xl font-bold text-[#E6A020]">$250</div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="mt-8 space-y-3 font-mono">
-              <button
-                onClick={handlePayment}
-                className="w-full py-4 rounded-xl bg-[#E6A020] hover:bg-[#cf8e18] text-black font-black text-xs uppercase tracking-[0.2em] transition-all shadow-lg shadow-[#E6A020]/20"
-              >
-                Reserve Cybertruck &middot; $250
-              </button>
-
-              <Link
-                to="/portal"
-                className="w-full py-3.5 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-center text-xs font-bold uppercase tracking-wider text-white transition-all block"
-              >
-                Enter Cybertruck In-Car Cockpit
-              </Link>
-            </div>
-
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW MODE: OFFICIAL 1:1 CYBERTRUCK SHOWCASE STORY PAGE
-  // =========================================================================
   return (
     <div className="min-h-screen bg-[#07080B] text-[#D8DAE2] font-sans antialiased selection:bg-[#E6A020] selection:text-black">
       
-      {/* Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-6 bg-gradient-to-b from-[#07080B] via-[#07080B]/60 to-transparent">
+      {/* ===================================================================== */}
+      {/* SOLID OPAQUE HEADER (ZERO TEXT OVERLAPPING ON SCROLL)                */}
+      {/* ===================================================================== */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-3.5 bg-[#07080B]/95 backdrop-blur-2xl border-b border-white/10 shadow-lg">
         <Link to="/" className="flex items-center gap-2 group">
           <span className="font-mono text-xl sm:text-2xl font-black tracking-[0.35em] text-white uppercase group-hover:text-[#E6A020] transition-colors">
             X3
           </span>
         </Link>
 
-        <div className="flex items-center gap-6 text-xs font-mono uppercase tracking-widest">
+        {/* Center Links */}
+        <div className="hidden lg:flex items-center gap-6 text-xs font-mono uppercase tracking-widest text-white/70">
+          <Link to="/roadster" className="hover:text-white transition-colors">Roadster</Link>
+          <span className="text-[#E6A020] font-bold">Cybertruck</span>
+          <Link to="/model-3" className="hover:text-white transition-colors">Model 3</Link>
+          <Link to="/model-y" className="hover:text-white transition-colors">Model Y</Link>
+          <Link to="/robotics" className="hover:text-white transition-colors">Robotics</Link>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs font-mono uppercase tracking-widest">
           <button
-            onClick={() => setViewMode("configurator")}
-            className="text-[#E6A020] hover:text-[#f3b544] font-bold transition-colors"
+            onClick={() => setConfiguratorOpen(true)}
+            className="px-4 py-1.5 rounded-full bg-[#E6A020] hover:bg-[#cf8e18] text-black font-bold transition-all shadow-md"
           >
             Order Now
           </button>
           <Link
             to="/portal"
-            className="hidden sm:inline-flex text-white/70 hover:text-white transition-colors"
+            className="hidden sm:inline-flex text-white/80 hover:text-white transition-colors px-2 py-1"
           >
             Digital Cockpit
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/15 bg-black/40 text-white"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-white/15 bg-white/5 text-white"
+            aria-label="Toggle Menu"
           >
             {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-            <span>Menu</span>
+            <span className="hidden sm:inline">Menu</span>
           </button>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex flex-col justify-between items-center text-center px-6 pt-32 pb-16 overflow-hidden">
+      {/* Mobile Menu Drawer */}
+      {menuOpen && (
+        <div className="fixed inset-x-0 top-14 z-50 border-b border-white/15 bg-[#07080B] p-6 shadow-2xl animate-in slide-in-from-top-2 space-y-4 font-mono text-xs uppercase tracking-wider">
+          <Link to="/roadster" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Roadster</Link>
+          <Link to="/cybertruck" onClick={() => setMenuOpen(false)} className="block py-2 text-[#E6A020] font-bold">Cybertruck</Link>
+          <Link to="/model-3" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Model 3</Link>
+          <Link to="/model-y" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Model Y</Link>
+          <Link to="/robotics" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Robotics</Link>
+          <Link to="/inflow" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Inflow</Link>
+          <Link to="/invoice" onClick={() => setMenuOpen(false)} className="block py-2 text-white/80 hover:text-white">Invoice</Link>
+          <Link to="/login" onClick={() => setMenuOpen(false)} className="block py-2 text-white font-bold">Sign In</Link>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* 1. HERO SECTION: FULL-BLEED CYBERTRUCK (CLEAN, ZERO BLOCKING CARDS)  */}
+      {/* ===================================================================== */}
+      <section className="relative h-screen min-h-[700px] flex flex-col justify-between items-center text-center px-6 pt-24 pb-10 overflow-hidden border-b border-white/10">
+        
+        {/* Full-Bleed Background Photography */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <img
             src="/assets/cybertruck/cybertruck-hero.avif"
             alt="Cybertruck Exoskeleton"
-            className="w-full h-full object-cover object-center filter contrast-125 brightness-90"
+            className="w-full h-full object-cover object-center filter contrast-125 brightness-95"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07080B] via-transparent to-black/60" />
         </div>
 
-        <div className="relative z-10 w-full" />
-
-        <div className="relative z-10 max-w-5xl mx-auto flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#E6A020]/40 bg-[#E6A020]/10 px-4 py-1.5 text-xs font-mono font-semibold tracking-wider text-[#E6A020] mb-4">
-            ULTRA-HARD 30X COLD-ROLLED STAINLESS STEEL &middot; STEER-BY-WIRE
-          </div>
-
-          <h1 className="font-mono font-black uppercase tracking-[0.2em] text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white drop-shadow-[0_10px_40px_rgba(0,0,0,0.95)]">
+        {/* Top Minimal Title (Tesla Style) */}
+        <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center">
+          <h1 className="font-mono font-black uppercase tracking-[0.2em] text-5xl sm:text-7xl md:text-8xl text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.9)]">
             CYBERTRUCK
           </h1>
-
-          <p className="mt-4 text-base sm:text-xl text-[#B8BBC7] max-w-2xl font-light">
+          <p className="mt-2 text-sm sm:text-base text-white/80 font-light">
             Built for any planet. More utility than a truck with more performance than a sports car.
           </p>
+        </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md font-mono text-xs font-bold uppercase tracking-[0.2em]">
+        {/* Bottom Horizontal Specs Bar & Clean Action Buttons */}
+        <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center">
+          
+          {/* Clean Specs Row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-10 text-center mb-6 font-mono">
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-white">11,000 lbs</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-widest mt-0.5">Towing Capacity</div>
+            </div>
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-[#E6A020]">2.6 s</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-widest mt-0.5">0-60 MPH (Cyberbeast)</div>
+            </div>
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-white">340 mi</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-widest mt-0.5">Estimated Range</div>
+            </div>
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold text-white">2,500 lbs</div>
+              <div className="text-[10px] text-white/60 uppercase tracking-widest mt-0.5">Max Payload</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md font-mono text-xs font-bold uppercase tracking-[0.2em]">
             <button
-              onClick={() => setViewMode("configurator")}
-              className="w-full sm:w-52 py-3.5 px-6 rounded-md bg-[#E6A020] hover:bg-[#cf8e18] text-black shadow-lg shadow-[#E6A020]/25 transition-all"
+              onClick={() => setConfiguratorOpen(true)}
+              className="w-full sm:w-52 py-3.5 px-6 rounded-md bg-[#E6A020] hover:bg-[#cf8e18] text-black shadow-lg shadow-[#E6A020]/25 transition-all text-center"
             >
               Order Now
             </button>
             <Link
               to="/portal"
-              className="w-full sm:w-52 py-3.5 px-6 rounded-md border border-white/20 bg-black/60 hover:bg-black/90 text-white text-center transition-all"
+              className="w-full sm:w-52 py-3.5 px-6 rounded-md border border-white/20 bg-black/60 hover:bg-black/90 text-white text-center transition-all backdrop-blur-md"
             >
-              Touchscreen Cockpit
+              Digital Cockpit
             </Link>
-          </div>
-        </div>
-
-        {/* Specs Strip */}
-        <div className="relative z-10 max-w-6xl mx-auto w-full mt-12">
-          <div className="rounded-2xl border border-white/10 bg-black/80 backdrop-blur-xl p-6 grid grid-cols-2 lg:grid-cols-4 gap-6 items-center shadow-2xl font-mono text-center">
-            <div>
-              <div className="text-3xl font-extrabold text-white">11,000 lbs</div>
-              <div className="text-[11px] text-white/50 uppercase mt-0.5">Towing Capacity</div>
-            </div>
-            <div className="border-l border-white/10">
-              <div className="text-3xl font-extrabold text-[#E6A020]">2.6 s</div>
-              <div className="text-[11px] text-white/50 uppercase mt-0.5">0-60 MPH (Cyberbeast)</div>
-            </div>
-            <div className="border-l border-white/10">
-              <div className="text-3xl font-extrabold text-white">340 mi</div>
-              <div className="text-[11px] text-white/50 uppercase mt-0.5">Estimated Range</div>
-            </div>
-            <div className="border-l border-white/10">
-              <div className="text-3xl font-extrabold text-white">2,500 lbs</div>
-              <div className="text-[11px] text-white/50 uppercase mt-0.5">Max Payload</div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Feature Deep-Dive Grid */}
+      {/* ===================================================================== */}
+      {/* 2. BUILT FOR ANY PLANET FEATURES                                     */}
+      {/* ===================================================================== */}
       <section className="py-24 px-6 sm:px-12 max-w-6xl mx-auto">
         <div className="text-center max-w-3xl mx-auto mb-16">
+          <div className="text-xs font-mono uppercase tracking-[0.25em] text-[#E6A020] mb-2 font-bold">
+            Engineering Specifications
+          </div>
           <h2 className="text-3xl sm:text-5xl font-mono font-bold tracking-tight text-white mb-3 uppercase">
             Built For Any Planet
           </h2>
@@ -406,61 +263,87 @@ function OfficialCybertruckPage() {
         </div>
       </section>
 
-      {/* Interactive 3D Digital Twin Section */}
+      {/* ===================================================================== */}
+      {/* 3. INTERACTIVE STUDIO SHOWCASE                                        */}
+      {/* ===================================================================== */}
       <section className="py-20 px-6 sm:px-12 max-w-6xl mx-auto border-t border-white/10">
         <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="text-xs font-mono uppercase tracking-[0.25em] text-[#E6A020] mb-2 font-bold">
+            Interactive Studio
+          </div>
           <h2 className="text-3xl sm:text-4xl font-mono font-bold uppercase text-white mb-2">
-            Interactive Exoskeleton
+            Exoskeleton & Telemetry
           </h2>
           <p className="text-xs sm:text-sm font-mono text-white/50">
-            Drag to rotate 360&deg; &middot; Test vault cover and air suspension height
+            Explore 30X Cold-Rolled Stainless Steel &middot; Adaptive Air Suspension &middot; Motorized Vault
           </p>
         </div>
 
-        <div className="rounded-3xl border border-white/15 bg-black/80 p-6 sm:p-8 shadow-2xl">
-          <div className="relative w-full aspect-[16/9] max-h-[520px] rounded-2xl overflow-hidden bg-black/90">
-            <TeslaVehicle3DCanvas
-              model="cybertruck"
-              isDriving={isDriving3D}
-              speed={isDriving3D ? 72 : 0}
-              vaultOpen={vaultCoverOpen}
-              headlightsOn={true}
+        <div className="rounded-3xl border border-white/15 bg-black/80 overflow-hidden shadow-2xl">
+          {/* Main Visual */}
+          <div className="relative aspect-[16/9] w-full bg-black">
+            <img
+              src={activeAngle.image}
+              alt={activeAngle.label}
+              className="w-full h-full object-cover object-center filter contrast-115 brightness-95 transition-all duration-500"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
+            
+            <div className="absolute bottom-6 left-6 right-6 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 font-mono text-xs">
+              <div className="p-4 rounded-xl bg-black/80 border border-white/15 backdrop-blur-md max-w-md">
+                <div className="text-base font-bold text-[#E6A020]">{activeAngle.label}</div>
+                <div className="text-white/70 mt-1">{activeAngle.desc}</div>
+              </div>
+
+              {/* Suspension & Vault Controls */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setVaultCoverClosed(!vaultCoverClosed)}
+                  className="px-4 py-2.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold transition-all"
+                >
+                  Vault: {vaultCoverClosed ? "CLOSED" : "OPEN"}
+                </button>
+                <button
+                  onClick={() =>
+                    setSuspensionMode(
+                      suspensionMode === "Medium" ? "High" : suspensionMode === "High" ? "Entry" : "Medium"
+                    )
+                  }
+                  className="px-4 py-2.5 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 text-white font-bold transition-all"
+                >
+                  Ride: {suspensionMode.toUpperCase()}
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
-            <div className="flex items-center gap-3">
+          {/* Angle Switcher Tabs */}
+          <div className="p-4 bg-[#0A0B10] border-t border-white/10 flex flex-wrap gap-2 justify-center font-mono text-xs">
+            {STUDIO_ANGLES.map((ang, idx) => (
               <button
-                onClick={() => setIsDriving3D(!isDriving3D)}
-                className="px-4 py-2 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-white"
-              >
-                {isDriving3D ? "Pause Motion" : "Resume Motion"}
-              </button>
-              <button
-                onClick={() => setVaultCoverOpen(!vaultCoverOpen)}
-                className={`px-4 py-2 rounded-lg border transition-colors ${
-                  vaultCoverOpen ? "border-[#E6A020] bg-[#E6A020]/20 text-[#E6A020]" : "border-white/20 text-white"
+                key={ang.id}
+                onClick={() => setActiveAngleIndex(idx)}
+                className={`px-4 py-2 rounded-lg transition-all ${
+                  activeAngleIndex === idx
+                    ? "bg-[#E6A020] text-black font-bold shadow"
+                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10"
                 }`}
               >
-                Vault Cover: {vaultCoverOpen ? "OPEN" : "CLOSED"}
+                {ang.label}
               </button>
-            </div>
-
-            <button
-              onClick={() => setViewMode("configurator")}
-              className="px-6 py-2 rounded-lg bg-[#E6A020] text-black font-bold uppercase tracking-widest hover:bg-[#cf8e18]"
-            >
-              Order Cybertruck
-            </button>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-12 text-center text-xs font-mono text-white/40">
-        <div>X3 &copy; 2026 &nbsp;&middot;&nbsp; Cybertruck Cyberbeast Platform &nbsp;&middot;&nbsp; Privacy &amp; Legal</div>
-      </footer>
+      {/* Configurator Modal */}
+      <TeslaConfiguratorModal
+        isOpen={configuratorOpen}
+        onClose={() => setConfiguratorOpen(false)}
+        defaultProductId="cybertruck"
+      />
 
+      <SiteFooter />
     </div>
   );
 }

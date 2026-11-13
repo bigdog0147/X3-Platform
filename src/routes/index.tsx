@@ -1,248 +1,216 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowRight, Play, Globe } from "lucide-react";
+import { useState, useRef } from "react";
+import { Volume2, VolumeX, Globe } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { TeslaConfiguratorModal } from "@/components/tesla-configurator-modal";
-import { VideoPlayerModal } from "@/components/video-player-modal";
-import { AmbientVideoBackground } from "@/components/ambient-video-background";
-import { TeslaInteractiveMap } from "@/components/tesla-interactive-map";
 
 export const Route = createFileRoute("/")({
-  component: LandingPage,
-  head: () => {
-    const OG_IMAGE = "https://gf3x.space/og-image.jpg";
-    return {
-      meta: [
-        { title: "X3 — High-Performance Engineering" },
-        {
-          name: "description",
-          content:
-            "X3 builds next-generation platforms: high-performance electric powertrains, robotics, energy storage, and AI infrastructure.",
-        },
-        { property: "og:title", content: "X3 — High-Performance Engineering" },
-        {
-          property: "og:description",
-          content:
-            "High-performance engineering integrating advanced robotics, clean energy arrays, and autonomous intelligence.",
-        },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://www.gf3x.space/" },
-        { property: "og:image", content: OG_IMAGE },
-        { property: "og:image:width", content: "1920" },
-        { property: "og:image:height", content: "1088" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: OG_IMAGE },
-      ],
-      links: [{ rel: "canonical", href: "https://www.gf3x.space/" }],
-    };
-  },
+  component: TeslaHomePage,
+  head: () => ({
+    meta: [
+      { title: "Electric Cars, Solar & Clean Energy | X3" },
+      {
+        name: "description",
+        content: "High-performance electric vehicles, commercial fleet robotics, and scalable renewable energy storage.",
+      },
+    ],
+  }),
 });
 
-interface VehicleSection {
+interface SectionItem {
   id: string;
   title: string;
-  tagline: string;
-  pricing: string;
-  specs: string;
+  subtitle: string;
+  priceNote?: string;
+  learnMoreUrl: string;
+  orderProductId: string;
   mediaType: "video" | "image";
   mediaSrc: string;
-  orderUrl?: string;
-  learnMoreUrl: string;
+  hasAudio?: boolean;
 }
 
-const VEHICLES: VehicleSection[] = [
-  {
-    id: "roadster",
-    title: "Roadster",
-    tagline: "Pure Electric Velocity",
-    pricing: "From $200,000",
-    specs: "1.9s 0-60 mph · +250 mph · 620 mi Range",
-    mediaType: "video",
-    mediaSrc: "/assets/roadster/roadster-hero-video.mp4",
-    learnMoreUrl: "/roadster",
-  },
-  {
-    id: "cybertruck",
-    title: "Cybertruck",
-    tagline: "Built for Any Planet",
-    pricing: "From $79,990",
-    specs: "11,000 lbs Towing · 2.6s 0-60 mph · 340 mi Range",
-    mediaType: "image",
-    mediaSrc: "/assets/cybertruck/cybertruck-hero.avif",
-    learnMoreUrl: "/cybertruck",
-  },
+const SECTIONS: SectionItem[] = [
   {
     id: "model-y",
     title: "Model Y",
-    tagline: "Versatile All-Wheel Drive",
-    pricing: "From $44,990",
-    specs: "3.5s 0-60 mph · 303 mi Range · AWD",
+    subtitle: "From $31,490",
+    priceNote: "After Federal Tax Credit & Est. Gas Savings",
+    learnMoreUrl: "/model-y",
+    orderProductId: "model-y",
     mediaType: "image",
     mediaSrc: "/assets/vehicles/model-y.avif",
-    learnMoreUrl: "/technologies",
   },
   {
     id: "model-3",
     title: "Model 3",
-    tagline: "Sports Electric Sedan",
-    pricing: "From $38,990",
-    specs: "2.9s 0-60 mph · 341 mi Range · 163 mph",
+    subtitle: "Lease Starting at $299/mo",
+    priceNote: "From $34,990 After Est. Savings",
+    learnMoreUrl: "/model-3",
+    orderProductId: "model-3",
     mediaType: "image",
     mediaSrc: "/assets/vehicles/model-3.avif",
-    learnMoreUrl: "/technologies",
+  },
+  {
+    id: "cybertruck",
+    title: "Cybertruck",
+    subtitle: "Lease Starting at $799/mo",
+    priceNote: "Built for Any Planet",
+    learnMoreUrl: "/cybertruck",
+    orderProductId: "cybertruck",
+    mediaType: "image",
+    mediaSrc: "/assets/cybertruck/cybertruck-hero.avif",
+  },
+  {
+    id: "roadster",
+    title: "Roadster",
+    subtitle: "1.9 s 0-60 mph · +250 mph",
+    priceNote: "Pure Electric Aerodynamic Flight Platform",
+    learnMoreUrl: "/roadster",
+    orderProductId: "roadster",
+    mediaType: "video",
+    mediaSrc: "/showcase-video.mp4",
+    hasAudio: true,
+  },
+  {
+    id: "robotics",
+    title: "Optimus & Fleet",
+    subtitle: "Autonomous Bipedal Robotics",
+    priceNote: "Physical AI for Industrial Logistics & Assembly",
+    learnMoreUrl: "/robotics",
+    orderProductId: "cyberbot",
+    mediaType: "image",
+    mediaSrc: "/assets/roadster/official-gallery/5-front-beam-cinematic.jpg",
   },
 ];
 
-function LandingPage() {
+function TeslaHomePage() {
   const [configuratorOpen, setConfiguratorOpen] = useState(false);
-  const [configuratorProduct, setConfiguratorProduct] = useState("roadster");
-  const [videoModal, setVideoModal] = useState<{ isOpen: boolean; videoId: string; title: string }>({
-    isOpen: false,
-    videoId: "",
-    title: "",
-  });
+  const [configuratorProduct, setConfiguratorProduct] = useState("model-y");
+  const [isAudioMuted, setIsAudioMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const openConfigurator = (productId?: string) => {
-    if (productId) setConfiguratorProduct(productId);
+  const toggleSound = () => {
+    if (!videoRef.current) return;
+    const nextMuted = !isAudioMuted;
+    videoRef.current.muted = nextMuted;
+    setIsAudioMuted(nextMuted);
+    if (!nextMuted) {
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const handleOrder = (productId: string) => {
+    setConfiguratorProduct(productId);
     setConfiguratorOpen(true);
   };
 
-  const openVideo = (videoId: string, title: string) => {
-    setVideoModal({ isOpen: true, videoId, title });
-  };
-
   return (
-    <div className="bg-black text-white font-sans antialiased selection:bg-[#E82127] selection:text-white">
+    <div className="bg-black text-white font-sans antialiased selection:bg-[#3E6AE1] selection:text-white">
+      {/* Official Tesla Global Header */}
       <SiteHeader />
 
-      {/* ===================================================================== */}
-      {/* FULL-SCREEN VERTICAL SECTIONS (EXACT TESLA.COM HOMEPAGE ARCHITECTURE)  */}
-      {/* ===================================================================== */}
+      {/* Vertical Full-Bleed Viewport Sections (Exact Tesla Architecture) */}
       <main className="w-full">
-        {VEHICLES.map((vehicle) => (
+        {SECTIONS.map((sec, idx) => (
           <section
-            key={vehicle.id}
-            id={vehicle.id}
-            className="relative h-screen min-h-[680px] w-full flex flex-col justify-between items-center text-center px-6 pt-28 pb-16 overflow-hidden border-b border-white/10"
+            key={sec.id}
+            id={sec.id}
+            className="relative h-screen min-h-[640px] w-full flex flex-col justify-between items-center text-center px-6 pt-24 pb-14 overflow-hidden border-b border-white/5 snap-start"
           >
-            {/* Background Media: Full-Bleed Video or Image */}
-            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-              {vehicle.mediaType === "video" ? (
+            {/* Background Media */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+              {sec.mediaType === "video" ? (
                 <video
+                  ref={videoRef}
+                  src={sec.mediaSrc}
                   autoPlay
                   loop
-                  muted
+                  muted={isAudioMuted}
                   playsInline
-                  poster="/assets/roadster/roadster-card-official.avif"
                   className="w-full h-full object-cover object-center filter contrast-110 brightness-90"
-                >
-                  <source src={vehicle.mediaSrc} type="video/mp4" />
-                </video>
+                />
               ) : (
                 <img
-                  src={vehicle.mediaSrc}
-                  alt={vehicle.title}
+                  src={sec.mediaSrc}
+                  alt={sec.title}
                   className="w-full h-full object-cover object-center filter contrast-115 brightness-95"
                 />
               )}
-              {/* Cinematic Vignette */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/60" />
+              {/* Subtle top/bottom gradient to guarantee legibility */}
+              <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-black/70 via-black/30 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             </div>
 
-            {/* Top Text Details (Tesla Style Header & Subhead) */}
-            <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
-              <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)]">
-                {vehicle.title}
+            {/* Video Sound Toggle Button (For the Roadster / Showcase video) */}
+            {sec.hasAudio && (
+              <div className="absolute top-24 right-6 z-20 pointer-events-auto">
+                <button
+                  onClick={toggleSound}
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/20 bg-black/60 backdrop-blur-md text-white text-xs font-mono font-semibold transition-all hover:bg-black/90 hover:scale-105 shadow-xl"
+                  aria-label="Toggle Video Audio"
+                >
+                  {isAudioMuted ? (
+                    <>
+                      <VolumeX className="h-4 w-4 text-white/70" />
+                      <span>Unmute Sound</span>
+                    </>
+                  ) : (
+                    <>
+                      <Volume2 className="h-4 w-4 text-emerald-400 animate-pulse" />
+                      <span className="text-emerald-400 font-bold">Sound ON</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Top Text: Crisp, Minimal Title & Subhead (Tesla Parity) */}
+            <div className="relative z-10 max-w-xl mx-auto flex flex-col items-center pt-2 sm:pt-4">
+              <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)]">
+                {sec.title}
               </h2>
-              <div className="mt-2 text-sm sm:text-base text-white/90 font-medium drop-shadow-md">
-                {vehicle.specs}
+              <div className="mt-2 text-base sm:text-lg text-white font-medium drop-shadow-md">
+                {sec.subtitle}
               </div>
-              <div className="mt-1 text-xs font-mono uppercase tracking-wider text-white/70">
-                {vehicle.pricing} &middot; {vehicle.tagline}
-              </div>
+              {sec.priceNote && (
+                <div className="mt-1 text-xs text-white/70 font-light drop-shadow">
+                  {sec.priceNote}
+                </div>
+              )}
             </div>
 
-            {/* Bottom Actions: Dual Buttons (Order Now & Learn More) */}
-            <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
+            {/* Center Area: Completely Clear to Showcase the Vehicle Photography */}
+            <div className="flex-1 w-full pointer-events-none" />
+
+            {/* Bottom Actions: Clean Tesla Dual Buttons */}
+            <div className="relative z-10 w-full max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
               <button
-                onClick={() => openConfigurator(vehicle.id)}
-                className="w-full sm:w-56 py-3.5 px-6 rounded-md bg-[#252830]/90 hover:bg-[#343844] text-white font-mono text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-md transition-all shadow-xl border border-white/10"
+                onClick={() => handleOrder(sec.orderProductId)}
+                className="w-full sm:w-64 h-11 rounded-md bg-[#3E6AE1] hover:bg-[#3457B2] text-white font-medium text-xs sm:text-sm tracking-wide uppercase transition-all shadow-xl flex items-center justify-center"
               >
                 Order Now
               </button>
 
               <Link
-                to={vehicle.learnMoreUrl}
-                className="w-full sm:w-56 py-3.5 px-6 rounded-md bg-white/80 hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-md transition-all shadow-xl text-center"
+                to={sec.learnMoreUrl}
+                className="w-full sm:w-64 h-11 rounded-md bg-white/80 hover:bg-white text-[#171A20] font-medium text-xs sm:text-sm tracking-wide uppercase backdrop-blur-md transition-all shadow-xl flex items-center justify-center text-center"
               >
                 Learn More
               </Link>
             </div>
           </section>
         ))}
-
-        {/* ================= SECTION 5: X3 AUTONOMOUS ROBOTICS ================= */}
-        <section className="relative h-screen min-h-[680px] w-full flex flex-col justify-between items-center text-center px-6 pt-28 pb-16 overflow-hidden border-b border-white/10">
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <AmbientVideoBackground
-              videoId="cpraXaw7dyc"
-              title="X3 Robotic Precision System"
-              overlayOpacity="opacity-75"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/60" />
-          </div>
-
-          <div className="relative z-10 max-w-2xl mx-auto flex flex-col items-center">
-            <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.9)]">
-              Autonomous Robotics
-            </h2>
-            <div className="mt-2 text-sm sm:text-base text-white/90 font-medium">
-              Sub-millimeter Precision &middot; Neural Coprocessors
-            </div>
-            <div className="mt-1 text-xs font-mono uppercase tracking-wider text-white/70">
-              Enterprise Fleet Solutions
-            </div>
-          </div>
-
-          <div className="relative z-10 w-full max-w-lg mx-auto flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => openConfigurator("cyberbot")}
-              className="w-full sm:w-56 py-3.5 px-6 rounded-md bg-[#252830]/90 hover:bg-[#343844] text-white font-mono text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-md transition-all shadow-xl border border-white/10"
-            >
-              Order Fleet
-            </button>
-            <button
-              onClick={() => openVideo("cpraXaw7dyc", "X3 Autonomous Robotic Fleet")}
-              className="w-full sm:w-56 py-3.5 px-6 rounded-md bg-white/80 hover:bg-white text-black font-mono text-xs font-bold uppercase tracking-[0.2em] backdrop-blur-md transition-all shadow-xl text-center flex items-center justify-center gap-2"
-            >
-              <Play className="h-3.5 w-3.5 fill-black" />
-              Watch Film
-            </button>
-          </div>
-        </section>
-
-        {/* Global Charging & Fleet Network Map */}
-        <section className="py-20 px-6 max-w-7xl mx-auto">
-          <TeslaInteractiveMap />
-        </section>
       </main>
 
-      {/* Configurator Modal */}
+      {/* Interactive Configurator Modal */}
       <TeslaConfiguratorModal
         isOpen={configuratorOpen}
         onClose={() => setConfiguratorOpen(false)}
         defaultProductId={configuratorProduct}
       />
 
-      {/* Video Modal */}
-      <VideoPlayerModal
-        isOpen={videoModal.isOpen}
-        onClose={() => setVideoModal((v) => ({ ...v, isOpen: false }))}
-        videoId={videoModal.videoId}
-        title={videoModal.title}
-      />
-
+      {/* Official Tesla Minimalist Footer */}
       <SiteFooter />
     </div>
   );
