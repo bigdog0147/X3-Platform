@@ -166,9 +166,15 @@ const DEMO_ORDERS: VehicleOrder[] = [
 ];
 
 export function CustomerPortalPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem("x3_pilot_authenticated") === "true";
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.localStorage) {
+      if (localStorage.getItem("x3_pilot_authenticated") === "true") {
+        setIsAuthenticated(true);
+      }
+    }
+  }, []);
   const [emailInput, setEmailInput] = useState("pilot@x3.engineering");
   const [passwordInput, setPasswordInput] = useState("X3Roadster2026!");
   const [authError, setAuthError] = useState("");
