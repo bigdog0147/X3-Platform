@@ -24,6 +24,7 @@ import { Route as InnovationRouteImport } from './routes/innovation'
 import { Route as InfrastructureRouteImport } from './routes/infrastructure'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as CybertruckRouteImport } from './routes/cybertruck'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CareersRouteImport } from './routes/careers'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -166,6 +167,11 @@ const IndustriesRoute = IndustriesRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CybertruckRoute = CybertruckRouteImport.update({
+  id: '/cybertruck',
+  path: '/cybertruck',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -549,6 +555,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
   '/infrastructure': typeof InfrastructureRoute
@@ -633,6 +640,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
   '/infrastructure': typeof InfrastructureRoute
@@ -719,6 +727,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/careers': typeof CareersRoute
   '/contact': typeof ContactRoute
+  '/cybertruck': typeof CybertruckRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/industries': typeof IndustriesRoute
   '/infrastructure': typeof InfrastructureRoute
@@ -805,6 +814,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/cybertruck'
     | '/forgot-password'
     | '/industries'
     | '/infrastructure'
@@ -889,6 +899,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/cybertruck'
     | '/forgot-password'
     | '/industries'
     | '/infrastructure'
@@ -974,6 +985,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/careers'
     | '/contact'
+    | '/cybertruck'
     | '/forgot-password'
     | '/industries'
     | '/infrastructure'
@@ -1060,6 +1072,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CareersRoute: typeof CareersRoute
   ContactRoute: typeof ContactRoute
+  CybertruckRoute: typeof CybertruckRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IndustriesRoute: typeof IndustriesRoute
   InfrastructureRoute: typeof InfrastructureRoute
@@ -1196,6 +1209,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cybertruck': {
+      id: '/cybertruck'
+      path: '/cybertruck'
+      fullPath: '/cybertruck'
+      preLoaderRoute: typeof CybertruckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -1790,6 +1810,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CareersRoute: CareersRoute,
   ContactRoute: ContactRoute,
+  CybertruckRoute: CybertruckRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IndustriesRoute: IndustriesRoute,
   InfrastructureRoute: InfrastructureRoute,

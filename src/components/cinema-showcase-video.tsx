@@ -45,7 +45,7 @@ export function CinemaShowcaseVideo({
       className={`relative w-full overflow-hidden border-y border-white/10 bg-black shadow-2xl group ${className}`}
     >
       {/* Full-Bleed Edge-to-Edge Fluid Aerodynamic Video */}
-      <div className="relative w-full h-[65vh] sm:h-[80vh] min-h-[520px] max-h-[900px] bg-black">
+      <div className="relative w-full h-screen min-h-screen bg-black">
         <video
           ref={videoRef}
           src={src}

@@ -9,7 +9,10 @@ import {
   Flame,
   Fan,
   Wind,
+  Globe,
+  CreditCard,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { TeslaVehicle3DCanvas } from "@/components/tesla-vehicle-3d-canvas";
 
@@ -67,14 +70,26 @@ const CAROUSEL_SLIDES: FeatureSlide[] = [
   },
 ];
 
-function OfficialRoadsterPage() {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [reservationModalOpen, setReservationModalOpen] = useState(false);
-  const [updatesModalOpen, setUpdatesModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [selectedTrim, setSelectedTrim] = useState<"performance" | "thrust" | "rocket">("thrust");
+const CONFIG_CAR_IMAGES = [
+  { id: "rear-three-quarter", label: "Rear Profile", src: "/assets/roadster/official-gallery/25-configurator-performance.jpg" },
+  { id: "front-profile", label: "Front Profile", src: "/assets/roadster/official-gallery/3-true-pilot-profile.jpg" },
+  { id: "interior-supersonic", label: "Cockpit", src: "/assets/roadster/official-gallery/8-supersonic-interior.jpg" },
+  { id: "thruster-wing", label: "Cold-Gas Nozzles", src: "/assets/roadster/official-gallery/18-rear-wing-red-glow.jpg" },
+];
 
-  // 3D Canvas toggles
+function OfficialRoadsterPage() {
+  const [viewMode, setViewMode] = useState<"showcase" | "configurator">("showcase");
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [updatesModalOpen, setUpdatesModalOpen] = useState(false);
+
+  // Configurator state (Exact 1:1 match with Tesla screenshots)
+  const [selectedTrim, setSelectedTrim] = useState<"performance" | "thrust" | "rocket">("performance");
+  const [configCarImageIdx, setConfigCarImageIdx] = useState(0);
+  const [use3DInConfig, setUse3DInConfig] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // 3D Canvas dynamic controls
   const [show3DDigitalTwin, setShow3DDigitalTwin] = useState(false);
   const [isDriving3D, setIsDriving3D] = useState(true);
   const [thrusterActive, setThrusterActive] = useState(false);
@@ -87,11 +102,300 @@ function OfficialRoadsterPage() {
     setActiveSlide((curr) => (curr === CAROUSEL_SLIDES.length - 1 ? 0 : curr + 1));
   };
 
+  const prevConfigImage = () => {
+    setConfigCarImageIdx((curr) => (curr === 0 ? CONFIG_CAR_IMAGES.length - 1 : curr - 1));
+  };
+
+  const nextConfigImage = () => {
+    setConfigCarImageIdx((curr) => (curr === CONFIG_CAR_IMAGES.length - 1 ? 0 : curr + 1));
+  };
+
   const testThrusters = () => {
     setThrusterActive(true);
     setTimeout(() => setThrusterActive(false), 2400);
   };
 
+  const handlePayment = (method: "gpay" | "card") => {
+    setPaymentSuccess(true);
+    setTimeout(() => setPaymentSuccess(false), 4500);
+  };
+
+  // =========================================================================
+  // VIEW MODE: OFFICIAL 1:1 SPLIT CONFIGURATOR (RESERVE FLOW)
+  // =========================================================================
+  if (viewMode === "configurator") {
+    return (
+      <div className="min-h-screen bg-black text-[#F4F4F6] font-sans antialiased flex flex-col justify-between selection:bg-[#C88A3E] selection:text-black">
+        
+        {/* Top Minimalist Header */}
+        <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 sm:px-12 py-6 bg-gradient-to-b from-black via-black/60 to-transparent">
+          <Link to="/" className="flex items-center gap-2 group">
+            <span className="font-mono text-xl sm:text-2xl font-black tracking-[0.35em] text-white uppercase group-hover:text-[#C88A3E] transition-colors">
+              X3
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-6 text-xs font-mono uppercase tracking-widest">
+            <button
+              onClick={() => setViewMode("showcase")}
+              className="text-white/60 hover:text-white transition-colors"
+            >
+              ← Overview
+            </button>
+            <div className="flex items-center gap-1.5 text-white/80">
+              <Globe className="h-4 w-4 text-white/70" />
+              <span>US</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Payment Confirmation Toast */}
+        {paymentSuccess && (
+          <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 rounded-2xl border border-emerald-500/50 bg-black/95 px-8 py-4 text-xs font-mono text-emerald-400 shadow-2xl backdrop-blur-2xl flex items-center gap-3 animate-fadeIn">
+            <CheckCircle2 className="h-5 w-5 text-emerald-400" />
+            <div>
+              <div className="font-bold uppercase text-white">Reservation Deposit Confirmed ($5,000)</div>
+              <div className="text-white/60 mt-0.5">Priority serial allocated. Wire payment instruction sent to your email.</div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Two-Column Split Layout */}
+        <div className="relative pt-24 pb-12 w-full flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-screen overflow-hidden">
+          
+          {/* ================================================================= */}
+          {/* LEFT COLUMN: VEHICLE VIEWER & CAROUSEL                            */}
+          {/* ================================================================= */}
+          <div className="lg:col-span-7 relative flex flex-col justify-center items-center p-6 lg:p-12 min-h-[460px] lg:min-h-full">
+            
+            {/* Viewport Frame */}
+            <div className="relative w-full max-w-2xl aspect-[16/10] flex items-center justify-center">
+              {use3DInConfig ? (
+                <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 bg-black/80 shadow-2xl">
+                  <TeslaVehicle3DCanvas
+                    model="roadster"
+                    isDriving={isDriving3D}
+                    speed={selectedTrim === "rocket" ? 180 : selectedTrim === "thrust" ? 120 : 74}
+                    thrusterFiring={selectedTrim === "rocket" || thrusterActive}
+                    headlightsOn={true}
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-full relative rounded-2xl overflow-hidden flex items-center justify-center">
+                  <img
+                    src={CONFIG_CAR_IMAGES[configCarImageIdx].src}
+                    alt="Roadster Studio View"
+                    className="w-full h-full object-contain filter contrast-110 brightness-95 transition-opacity duration-500"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Carousel Navigation Strip: Exact Tesla Arrow and Dot Controls */}
+            <div className="mt-8 flex items-center justify-center gap-6">
+              <button
+                onClick={prevConfigImage}
+                disabled={use3DInConfig}
+                className="p-2 rounded-lg border border-white/10 hover:border-white/30 text-white/70 hover:text-white transition-colors disabled:opacity-30"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center gap-2">
+                {CONFIG_CAR_IMAGES.map((img, i) => (
+                  <button
+                    key={img.id}
+                    onClick={() => {
+                      setUse3DInConfig(false);
+                      setConfigCarImageIdx(i);
+                    }}
+                    className={`h-2 rounded-full transition-all ${
+                      !use3DInConfig && configCarImageIdx === i
+                        ? "w-6 bg-white"
+                        : "w-2 bg-white/20 hover:bg-white/40"
+                    }`}
+                  />
+                ))}
+                
+                {/* 3D Mode Dot */}
+                <button
+                  onClick={() => setUse3DInConfig(!use3DInConfig)}
+                  className={`h-2 rounded-full transition-all flex items-center px-2 py-1 text-[9px] font-mono uppercase ${
+                    use3DInConfig ? "bg-[#C88A3E] text-black font-bold" : "bg-white/20 text-white/60 hover:bg-white/40"
+                  }`}
+                >
+                  3D
+                </button>
+              </div>
+
+              <button
+                onClick={nextConfigImage}
+                disabled={use3DInConfig}
+                className="p-2 rounded-lg border border-white/10 hover:border-white/30 text-white/70 hover:text-white transition-colors disabled:opacity-30"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* ================================================================= */}
+          {/* RIGHT COLUMN: STICKY CONFIGURATOR & PAYMENT DECK                  */}
+          {/* ================================================================= */}
+          <div className="lg:col-span-5 relative flex flex-col justify-start p-6 lg:p-12 lg:border-l lg:border-white/10 overflow-y-auto max-w-xl mx-auto w-full">
+            
+            {/* Top Champagne Gold ROADSTER Logo */}
+            <div className="text-center sm:text-left mb-10">
+              <h1
+                className="font-black italic uppercase tracking-[0.18em] text-4xl sm:text-5xl text-transparent bg-clip-text"
+                style={{
+                  backgroundImage: "linear-gradient(180deg, #F9ECD5 0%, #D8B785 50%, #A27D4C 100%)",
+                }}
+              >
+                ROADSTER
+              </h1>
+            </div>
+
+            {/* Base Configuration: Performance */}
+            <div
+              onClick={() => setSelectedTrim("performance")}
+              className={`p-6 rounded-md border cursor-pointer transition-all duration-300 mb-8 ${
+                selectedTrim === "performance"
+                  ? "border-white bg-[#101014] shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+                  : "border-white/15 bg-black/40 hover:border-white/30"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Performance
+                </span>
+                <span className="text-xs font-mono uppercase tracking-widest text-white/70">
+                  Reserve
+                </span>
+              </div>
+              <p className="mt-3 text-xs sm:text-sm text-[#A8ABB7] leading-relaxed font-light">
+                Road ready with seating for two. Includes active aero and a multi-mode suction system.
+              </p>
+            </div>
+
+            {/* Section Heading: Augments */}
+            <div className="text-xs font-mono uppercase tracking-[0.2em] text-white/50 mb-4 font-semibold">
+              Augments
+            </div>
+
+            {/* Augment 1: Thrust */}
+            <div
+              onClick={() => setSelectedTrim("thrust")}
+              className={`p-6 rounded-md border cursor-pointer transition-all duration-300 mb-4 ${
+                selectedTrim === "thrust"
+                  ? "border-white bg-[#101014] shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+                  : "border-white/15 bg-black/40 hover:border-white/30"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Thrust
+                </span>
+                <span className="text-xs font-mono uppercase tracking-widest text-[#C88A3E] font-semibold">
+                  Limited
+                </span>
+              </div>
+              <p className="mt-3 text-xs sm:text-sm text-[#A8ABB7] leading-relaxed font-light">
+                Race ready with seating for two. Includes Performance active aero and a multi-mode suction system, plus acceleration thrusters.
+              </p>
+            </div>
+
+            {/* Augment 2: Rocket */}
+            <div
+              onClick={() => setSelectedTrim("rocket")}
+              className={`p-6 rounded-md border cursor-pointer transition-all duration-300 mb-8 ${
+                selectedTrim === "rocket"
+                  ? "border-white bg-[#101014] shadow-[0_0_20px_rgba(255,255,255,0.08)]"
+                  : "border-white/15 bg-black/40 hover:border-white/30"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                  Rocket
+                </span>
+                <span className="text-xs font-mono uppercase tracking-widest text-white/40 font-semibold">
+                  Invite Only
+                </span>
+              </div>
+              <p className="mt-3 text-xs sm:text-sm text-[#A8ABB7] leading-relaxed font-light">
+                Air ready with seating for one. Includes Performance and Thrust, plus a full flight system.
+              </p>
+            </div>
+
+            {/* Financial Summary: Exact Tesla Figures */}
+            <div className="space-y-4 pt-6 border-t border-white/10 text-sm">
+              <div className="flex items-baseline justify-between">
+                <div>
+                  <div className="text-base sm:text-lg font-bold text-white">Due Today</div>
+                  <div className="text-[11px] font-mono text-white/50">Refundable</div>
+                </div>
+                <div className="font-mono text-xl sm:text-2xl font-bold text-white">
+                  $5,000
+                </div>
+              </div>
+
+              <div className="flex items-baseline justify-between pt-2">
+                <div>
+                  <div className="text-base sm:text-lg font-bold text-white">Wire payment due within 10 days</div>
+                  <div className="text-[11px] font-mono text-white/50">Refundable</div>
+                </div>
+                <div className="font-mono text-xl sm:text-2xl font-bold text-white">
+                  $45,000
+                </div>
+              </div>
+            </div>
+
+            {/* Legal Disclaimers */}
+            <div className="mt-6 space-y-2 text-[11px] font-mono text-white/40 leading-relaxed">
+              <p>
+                Reservations are not final until payment is received, and are subject to cancellation if payment is not completed within 10 days.
+              </p>
+              <p>
+                By reserving, I agree to the <span className="underline hover:text-white cursor-pointer">Roadster Reservation Agreement</span>, <span className="underline hover:text-white cursor-pointer">Terms of Use</span>, and <span className="underline hover:text-white cursor-pointer">Privacy Notice</span>.
+              </p>
+            </div>
+
+            {/* Payment CTAs: Pay with GPay / Pay with Card */}
+            <div className="mt-8 space-y-3">
+              <button
+                onClick={() => handlePayment("gpay")}
+                className="w-full py-4 rounded-md border border-white/30 bg-black hover:bg-zinc-900 font-mono text-xs font-bold tracking-[0.2em] uppercase text-white transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <span>Pay with</span>
+                <span className="font-sans font-extrabold tracking-normal text-sm">
+                  <span className="text-[#4285F4]">G</span>
+                  <span className="text-[#EA4335]">o</span>
+                  <span className="text-[#FBBC05]">o</span>
+                  <span className="text-[#4285F4]">g</span>
+                  <span className="text-[#34A853]">l</span>
+                  <span className="text-[#EA4335]">e</span>
+                  <span className="text-white ml-1">Pay</span>
+                </span>
+              </button>
+
+              <button
+                onClick={() => handlePayment("card")}
+                className="w-full py-4 rounded-md border border-white/15 bg-[#1B1B1E] hover:bg-[#25252A] font-mono text-xs font-bold tracking-[0.2em] uppercase text-white transition-all flex items-center justify-center gap-2 shadow-md"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Pay with Card</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW MODE: OFFICIAL 1:1 SHOWCASE STORY PAGE
+  // =========================================================================
   return (
     <div className="min-h-screen bg-black text-[#F4F4F6] font-sans antialiased selection:bg-[#C88A3E] selection:text-black">
       
@@ -106,6 +410,13 @@ function OfficialRoadsterPage() {
         </Link>
 
         <div className="flex items-center gap-6">
+          <button
+            onClick={() => setViewMode("configurator")}
+            className="text-xs font-mono tracking-widest uppercase text-[#C88A3E] hover:text-[#E8A554] transition-colors font-bold"
+          >
+            Reserve Now
+          </button>
+
           <Link
             to="/portal"
             className="hidden sm:inline-flex text-xs font-mono tracking-widest uppercase text-white/70 hover:text-white transition-colors"
@@ -133,13 +444,15 @@ function OfficialRoadsterPage() {
           >
             Flagship Home
           </Link>
-          <Link
-            to="/roadster"
-            onClick={() => setMenuOpen(false)}
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              setViewMode("configurator");
+            }}
             className="text-2xl sm:text-3xl font-mono tracking-widest uppercase text-[#C88A3E]"
           >
-            Roadster Overview
-          </Link>
+            Reserve Roadster
+          </button>
           <Link
             to="/portal"
             onClick={() => setMenuOpen(false)}
@@ -147,15 +460,6 @@ function OfficialRoadsterPage() {
           >
             In-Car Digital Cockpit
           </Link>
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              setReservationModalOpen(true);
-            }}
-            className="text-2xl sm:text-3xl font-mono tracking-widest uppercase hover:text-[#C88A3E] transition-colors"
-          >
-            Reserve Vehicle
-          </button>
           <button
             onClick={() => setMenuOpen(false)}
             className="mt-8 text-xs font-mono text-white/50 tracking-widest uppercase"
@@ -199,7 +503,7 @@ function OfficialRoadsterPage() {
           {/* Action Buttons: Exact Tesla Layout */}
           <div className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-md">
             <button
-              onClick={() => setReservationModalOpen(true)}
+              onClick={() => setViewMode("configurator")}
               className="w-full sm:w-52 py-3.5 px-6 rounded-md border border-white/25 bg-black/60 hover:bg-black/90 hover:border-white/50 font-mono text-xs font-bold tracking-[0.2em] uppercase text-white backdrop-blur-md transition-all shadow-lg"
             >
               Reserve Now
@@ -276,7 +580,6 @@ function OfficialRoadsterPage() {
           <h2 className="text-4xl sm:text-6xl font-sans font-bold tracking-tight text-white mb-3">
             A True Pilot's Car
           </h2>
-          {/* Amber Underline Accent */}
           <div className="w-24 h-[2px] bg-[#C88A3E] mb-8" />
 
           <p className="max-w-3xl text-sm sm:text-base md:text-lg text-[#B0B3BD] leading-relaxed font-light">
@@ -284,7 +587,6 @@ function OfficialRoadsterPage() {
           </p>
         </div>
 
-        {/* Car Front Profile Image */}
         <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/60 shadow-2xl mb-12">
           <img
             src="/assets/roadster/official-gallery/3-true-pilot-profile.jpg"
@@ -293,7 +595,6 @@ function OfficialRoadsterPage() {
           />
         </div>
 
-        {/* Wheel & Fender Close-Up Shot */}
         <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/60 shadow-2xl">
           <img
             src="/assets/roadster/official-gallery/4-wheel-close-up.jpg"
@@ -304,14 +605,10 @@ function OfficialRoadsterPage() {
       </section>
 
       {/* ===================================================================== */}
-      {/* 4. HORIZONTAL FEATURE CAROUSEL (HIDDEN AERO / ANO WHITE / GOLD GLAZED / SUPERSONIC / MASS CONTROL) */}
+      {/* 4. HORIZONTAL FEATURE CAROUSEL (5 CARDS WITH AMBER UNDERLINES)        */}
       {/* ===================================================================== */}
       <section className="py-24 px-6 sm:px-12 max-w-6xl mx-auto">
-        
-        {/* Active Slide Card */}
         <div className="rounded-3xl border border-white/15 bg-[#0A0A0C] overflow-hidden shadow-2xl">
-          
-          {/* Image */}
           <div className="relative w-full aspect-[16/9] max-h-[560px] overflow-hidden bg-black">
             <img
               src={CAROUSEL_SLIDES[activeSlide].image}
@@ -321,7 +618,6 @@ function OfficialRoadsterPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0C] via-transparent to-transparent pointer-events-none" />
           </div>
 
-          {/* Copy Box */}
           <div className="p-8 sm:p-12 space-y-4">
             <div>
               <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
@@ -334,26 +630,22 @@ function OfficialRoadsterPage() {
               {CAROUSEL_SLIDES[activeSlide].copy}
             </p>
 
-            {/* Slider Navigation Bar */}
             <div className="pt-8 flex items-center justify-between border-t border-white/10">
               <div className="flex items-center gap-2">
                 <button
                   onClick={prevSlide}
                   className="p-2 rounded-lg border border-white/15 hover:border-white/40 bg-black/40 text-white transition-colors"
-                  aria-label="Previous Slide"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <button
                   onClick={nextSlide}
                   className="p-2 rounded-lg border border-white/15 hover:border-white/40 bg-black/40 text-white transition-colors"
-                  aria-label="Next Slide"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
 
-              {/* Indicator Dots */}
               <div className="flex items-center gap-2">
                 {CAROUSEL_SLIDES.map((slide, idx) => (
                   <button
@@ -364,7 +656,6 @@ function OfficialRoadsterPage() {
                         ? "w-8 bg-white"
                         : "w-2.5 bg-white/20 hover:bg-white/40"
                     }`}
-                    aria-label={`Go to slide ${idx + 1}`}
                   />
                 ))}
               </div>
@@ -374,12 +665,11 @@ function OfficialRoadsterPage() {
               </div>
             </div>
           </div>
-
         </div>
       </section>
 
       {/* ===================================================================== */}
-      {/* 5. OUT OF THIS WORLD (DESERT NIGHT SKY WITH SPACEX COMPONENTS)       */}
+      {/* 5. OUT OF THIS WORLD                                                  */}
       {/* ===================================================================== */}
       <section className="py-28 px-6 sm:px-12 max-w-6xl mx-auto">
         <div className="rounded-3xl border border-white/15 bg-black overflow-hidden shadow-2xl mb-12">
@@ -406,8 +696,6 @@ function OfficialRoadsterPage() {
       {/* 6. BEYOND THE LIMITS OF PHYSICS & DOWNFORCE GRAPH                     */}
       {/* ===================================================================== */}
       <section className="py-28 px-6 sm:px-12 max-w-6xl mx-auto">
-        
-        {/* Downforce vs Speed Official Graph Display */}
         <div className="rounded-3xl border border-white/15 bg-black overflow-hidden shadow-2xl mb-12">
           <img
             src="/assets/roadster/official-gallery/12-downforce-graph.jpg"
@@ -432,8 +720,6 @@ function OfficialRoadsterPage() {
       {/* 7. SUCTION INVERTED CEILING & DUAL PLUME THRUSTERS                    */}
       {/* ===================================================================== */}
       <section className="py-28 px-6 sm:px-12 max-w-6xl mx-auto">
-        
-        {/* Upside-Down Car & Dual Plume Thruster Shot */}
         <div className="rounded-3xl border border-white/15 bg-black overflow-hidden shadow-2xl mb-12">
           <img
             src="/assets/roadster/official-gallery/16-dual-plume-full.jpg"
@@ -453,7 +739,6 @@ function OfficialRoadsterPage() {
           </p>
         </div>
 
-        {/* Close Up Rear Wing Red Glow Nozzles */}
         <div className="rounded-3xl border border-white/15 bg-black overflow-hidden shadow-2xl">
           <img
             src="/assets/roadster/official-gallery/18-rear-wing-red-glow.jpg"
@@ -464,11 +749,9 @@ function OfficialRoadsterPage() {
       </section>
 
       {/* ===================================================================== */}
-      {/* 8. CONFIGURATIONS & AUGMENTS (PERFORMANCE / THRUST / ROCKET)          */}
+      {/* 8. CONFIGURATIONS & AUGMENTS (DIRECT ROUTE TO CONFIGURATOR)           */}
       {/* ===================================================================== */}
       <section className="py-28 px-6 sm:px-12 max-w-4xl mx-auto">
-        
-        {/* Base Trim: Performance */}
         <div className="border-b border-white/15 pb-16 mb-16">
           <h2 className="text-4xl sm:text-6xl font-sans font-bold tracking-tight text-white mb-2">
             Performance
@@ -483,22 +766,20 @@ function OfficialRoadsterPage() {
           <button
             onClick={() => {
               setSelectedTrim("performance");
-              setReservationModalOpen(true);
+              setViewMode("configurator");
             }}
             className="mt-8 px-8 py-3 rounded-md border border-white/20 bg-white/5 hover:bg-white/15 font-mono text-xs font-bold tracking-[0.2em] uppercase text-white transition-all"
           >
-            Reserve Performance &middot; $200,000
+            Configure Performance
           </button>
         </div>
 
-        {/* Section Heading: Augments */}
         <div className="text-center mb-16">
           <span className="font-mono text-xs tracking-[0.3em] uppercase text-white/50">
             Augments
           </span>
         </div>
 
-        {/* Augment 1: Thrust */}
         <div className="rounded-2xl border border-white/15 bg-[#090A0D] p-8 sm:p-12 mb-8 shadow-xl">
           <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-2">
             Thrust
@@ -513,15 +794,14 @@ function OfficialRoadsterPage() {
           <button
             onClick={() => {
               setSelectedTrim("thrust");
-              setReservationModalOpen(true);
+              setViewMode("configurator");
             }}
             className="px-8 py-3 rounded-md border border-white/20 bg-white/10 hover:bg-white/20 font-mono text-xs font-bold tracking-[0.2em] uppercase text-white transition-all"
           >
-            Select Thrust Augment &middot; $250,000
+            Configure Thrust Augment
           </button>
         </div>
 
-        {/* Augment 2: Rocket */}
         <div className="rounded-2xl border border-white/15 bg-[#090A0D] p-8 sm:p-12 shadow-xl">
           <h3 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-2">
             Rocket
@@ -536,14 +816,13 @@ function OfficialRoadsterPage() {
           <button
             onClick={() => {
               setSelectedTrim("rocket");
-              setReservationModalOpen(true);
+              setViewMode("configurator");
             }}
             className="px-8 py-3 rounded-md border border-[#C88A3E]/40 bg-[#C88A3E]/10 hover:bg-[#C88A3E]/20 font-mono text-xs font-bold tracking-[0.2em] uppercase text-[#F9ECD5] transition-all"
           >
-            Apply for Rocket Invitation &middot; $300,000+
+            Apply for Rocket Augment
           </button>
         </div>
-
       </section>
 
       {/* ===================================================================== */}
@@ -605,10 +884,7 @@ function OfficialRoadsterPage() {
           </p>
         </div>
 
-        {/* Final Spotlight Car Shot */}
         <div className="relative rounded-3xl border border-white/10 bg-black overflow-hidden shadow-2xl mb-12">
-          
-          {/* Champagne Floating Logo */}
           <div className="absolute top-10 left-0 right-0 z-10 flex justify-center pointer-events-none">
             <span
               className="font-black italic uppercase tracking-[0.18em] text-3xl sm:text-5xl md:text-6xl text-transparent bg-clip-text"
@@ -626,10 +902,9 @@ function OfficialRoadsterPage() {
             className="w-full h-auto object-cover"
           />
 
-          {/* Central Reserve Now CTA */}
           <div className="absolute bottom-10 left-0 right-0 flex justify-center">
             <button
-              onClick={() => setReservationModalOpen(true)}
+              onClick={() => setViewMode("configurator")}
               className="py-3.5 px-10 rounded-md border border-white/30 bg-black/75 hover:bg-black/95 font-mono text-xs font-bold tracking-[0.2em] uppercase text-white backdrop-blur-md transition-all shadow-2xl"
             >
               Reserve Now
@@ -637,7 +912,6 @@ function OfficialRoadsterPage() {
           </div>
         </div>
 
-        {/* Footnote Disclaimers */}
         <div className="max-w-2xl mx-auto space-y-3 text-[11px] font-mono text-white/40 leading-relaxed pt-8">
           <p>
             <sup>†</sup> Available with the Rocket trim only, which is not available in all regions.
@@ -650,78 +924,6 @@ function OfficialRoadsterPage() {
           </div>
         </div>
       </section>
-
-      {/* ===================================================================== */}
-      {/* 11. RESERVATION MODAL                                                 */}
-      {/* ===================================================================== */}
-      {reservationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-xl rounded-2xl border border-white/20 bg-[#0C0D10] p-8 shadow-2xl">
-            <button
-              onClick={() => setReservationModalOpen(false)}
-              className="absolute top-6 right-6 text-white/50 hover:text-white text-lg font-mono"
-            >
-              ✕
-            </button>
-
-            <div className="text-center">
-              <div className="font-mono text-xs text-[#C88A3E] tracking-widest uppercase mb-1">
-                Official Priority Queue
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight text-white">
-                Reserve Roadster
-              </h3>
-              <p className="text-xs text-white/60 mt-1">
-                Selected Configuration: {selectedTrim.toUpperCase()}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mt-6">
-              {(["performance", "thrust", "rocket"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setSelectedTrim(t)}
-                  className={`p-3 rounded-xl border text-left transition-all ${
-                    selectedTrim === t
-                      ? "border-[#C88A3E] bg-[#C88A3E]/10"
-                      : "border-white/10 bg-white/5"
-                  }`}
-                >
-                  <div className="text-[10px] font-mono uppercase text-[#C88A3E] font-bold">
-                    {t}
-                  </div>
-                  <div className="text-xs font-mono text-white/60 mt-1">
-                    {t === "performance" ? "$50,000 Deposit" : t === "thrust" ? "$50,000 Deposit" : "$100,000 Deposit"}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <input
-                type="text"
-                placeholder="Full Legal Name"
-                className="w-full rounded-lg border border-white/15 bg-black/70 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#C88A3E] focus:outline-none"
-              />
-              <input
-                type="email"
-                placeholder="Corporate or Personal Email"
-                className="w-full rounded-lg border border-white/15 bg-black/70 px-4 py-3 text-sm text-white placeholder-white/40 focus:border-[#C88A3E] focus:outline-none"
-              />
-            </div>
-
-            <button
-              onClick={() => {
-                alert(`Reservation confirmed for X3 Roadster (${selectedTrim.toUpperCase()}).`);
-                setReservationModalOpen(false);
-              }}
-              className="mt-6 w-full rounded-lg bg-gradient-to-r from-[#D8B785] to-[#A27D4C] text-black font-mono font-bold text-xs uppercase tracking-widest py-3.5 hover:brightness-110 transition-all"
-            >
-              Confirm Reservation &middot; {selectedTrim === "rocket" ? "$100,000 Deposit" : "$50,000 Deposit"}
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* UPDATES MODAL */}
       {updatesModalOpen && (
